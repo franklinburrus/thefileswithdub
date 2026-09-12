@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">The Files With Dub brand mark</title>
+  <desc id="desc">A bold yellow, black, and red evidence-file mark for The Files With Dub.</desc>
+  <rect width="1200" height="720" fill="#eeb51b"/>
+  <path d="M70 92h1060v536H70z" fill="#10110e"/>
+  <path d="M112 136h976v448H112z" fill="#f1eadc"/>
+  <path d="M112 136h238l45 54h693v44H112z" fill="#eeb51b"/>
+  <path d="M112 492h976v92H112z" fill="#df4a34"/>
+  <text x="600" y="376" text-anchor="middle" fill="#10110e" font-family="Arial Black, Impact, sans-serif" font-size="196" font-weight="900" letter-spacing="-15">THE FILES</text>
+  <path d="M194 418h812" stroke="#10110e" stroke-width="15"/>
+  <text x="600" y="474" text-anchor="middle" fill="#10110e" font-family="Arial Black, Impact, sans-serif" font-size="62" font-weight="900" letter-spacing="11">WITH DUB</text>
+  <text x="600" y="551" text-anchor="middle" fill="#f1eadc" font-family="Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="9">QUEENS · KEEP THE RECORD</text>
+</svg>

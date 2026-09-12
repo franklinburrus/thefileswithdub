@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "thefileswithdub",
+  "account_id": "ea7a77735549fff1fba3e54e742e6e7b",
+  "compatibility_date": "2026-09-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./worker/index.ts",
+  "workers_dev": false,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS"
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
