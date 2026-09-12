@@ -42,12 +42,12 @@ export default function Broadcasts() {
         <span className="broadcast-source-state">{archiveStatus === "loading" ? "Resolving replay…" : archiveStatus === "ready" ? "Files-native playback" : "Archive source unavailable"}</span>
       </div>
       {archiveStatus === "loading"
-        ? <div className="broadcast-player"><Image src={selected.poster} alt="" fill priority sizes="(max-width: 760px) 100vw, 82vw" /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
+        ? <div className="broadcast-player"><Image src={selected.poster} alt="" fill priority sizes="(max-width: 760px) 100vw, 82vw" unoptimized /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
         : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={selected.title} />}
     </section>
     <div className="broadcast-list">
       {broadcasts.map((broadcast, index) => <button className={broadcast.id === selected.id ? "active" : ""} key={broadcast.id} onClick={() => setSelectedId(broadcast.id)} aria-pressed={broadcast.id === selected.id}>
-        <Image src={broadcast.poster} alt="" width={360} height={203} />
+        <Image src={broadcast.poster} alt="" width={360} height={203} unoptimized />
         <span>REPLAY {String(index + 1).padStart(2, "0")}</span>
         <h2>{broadcast.title}</h2>
         <b>{broadcast.hlsUrl === null && archiveStatus !== "loading" ? "Source unavailable" : "Play replay"}</b>

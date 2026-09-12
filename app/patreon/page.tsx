@@ -19,7 +19,7 @@ export default function PatreonPage() {
           <a className="outline" href={patreon} target="_self" rel="noreferrer">Join or sign in ↗</a>
         </div>
       </div>
-      <div className="patreon-feature-image"><Image src="/cant-dub-me-logo.png" alt="Can’t DUB Me logo" width={2400} height={2400} sizes="(max-width: 760px) 82vw, 40vw" priority /><span>CAN’T DUB ME / MEMBER PREVIEW</span></div>
+      <div className="patreon-feature-image"><Image src="/cant-dub-me-logo.png" alt="Can’t DUB Me logo" width={2400} height={2400} sizes="(max-width: 760px) 82vw, 40vw" priority unoptimized /><span>CAN’T DUB ME / MEMBER PREVIEW</span></div>
     </section>
     <Link className="outline" href="/">Back to The Files</Link>
   </main></>;
