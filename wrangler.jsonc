@@ -7,6 +7,12 @@
   "main": "./worker/index.ts",
   "workers_dev": false,
   "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "www.thefileswithdub.com/*",
+      "zone_name": "thefileswithdub.com"
+    }
+  ],
   "env": {
     "preview": {
       "workers_dev": true
