@@ -40,6 +40,29 @@ function withSecurityHeaders(response: Response): Response {
 
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const requestUrl = new URL(request.url);
+    // Cloudflare's zone setting is an external control-plane dependency. Keep
+    // the application boundary safe as well, while preserving localhost HTTP
+    // for the local Worker test harness.
+    if (requestUrl.protocol === "http:" && !["localhost", "127.0.0.1"].includes(requestUrl.hostname)) {
+      requestUrl.protocol = "https:";
+      return withSecurityHeaders(new Response(null, {
+        status: 301,
+        headers: {
+          Location: requestUrl.toString(),
+          "Cache-Control": "public, max-age=31536000",
+        },
+      }));
+    }
+    if (requestUrl.pathname === "/game" || requestUrl.pathname.startsWith("/game/")) {
+      return withSecurityHeaders(new Response("Not Found", {
+        status: 404,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=0, must-revalidate",
+        },
+      }));
+    }
     return withSecurityHeaders(await handler.fetch(request, env, ctx));
   },
 };

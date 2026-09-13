@@ -89,6 +89,40 @@ test("each public route server-renders its unique page content", async () => {
   }
 });
 
+test("retained pages expose one primary heading and labeled form controls", async () => {
+  const routes = ["/", "/files", "/outside", "/studio", "/consulting", "/spill", "/contact", "/about"];
+  for (const path of routes) {
+    const response = await render(path);
+    const html = await response.text();
+    assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `${path} should have one h1`);
+  }
+
+  const contact = await (await render("/contact")).text();
+  assert.match(contact, /for="contact-purpose"/);
+  assert.match(contact, /for="contact-name"/);
+  assert.match(contact, /for="contact-email"/);
+  assert.match(contact, /for="contact-message"/);
+
+  const spill = await (await render("/spill")).text();
+  assert.match(spill, /for="tip-message"/);
+  assert.match(spill, /for="tip-source"/);
+  assert.match(spill, /for="tip-follow-up"/);
+});
+
+test("redirects external HTTP requests to HTTPS at the Worker boundary", async () => {
+  const worker = (await import(new URL("../dist/server/index.js", import.meta.url).href)).default;
+  const env = { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } };
+  const response = await worker.fetch(new Request("http://www.thefileswithdub.com/files?from=http"), env, { waitUntil() {}, passThroughOnException() {} });
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get("location"), "https://www.thefileswithdub.com/files?from=http");
+
+  for (const path of ["/game", "/game/", "/game/anything"]) {
+    const retired = await worker.fetch(new Request(`https://www.thefileswithdub.com${path}`), env, { waitUntil() {}, passThroughOnException() {} });
+    assert.equal(retired.status, 404, path);
+    assert.match(retired.headers.get("content-type") ?? "", /text\/plain/);
+  }
+});
+
 test("retires the Game route and every source entry point", async () => {
   const response = await render("/game");
   assert.equal(response.status, 404);
@@ -298,6 +332,8 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.doesNotMatch(platform, /accept the privacy policy/);
   assert.match(platform, /Policies & accessibility information is pending owner review/);
   assert.match(platform, /closeOnEscape/);
+  assert.match(platform, /closeButtonRef/);
+  assert.match(platform, /previousFocusRef/);
   assert.match(platform, /loading="eager"/);
   assert.match(platform, /referrerPolicy="strict-origin-when-cross-origin"/);
   assert.match(platform, /loading="lazy"/);
