@@ -64,3 +64,14 @@
   .media-card h3,.path-grid h3,.service-line h3,.consult-card h3,.nightlife-list h3{line-height:1.05}
   .contact form{max-width:760px}
 }
+
+/* Protected form states and transparent policy drafts. */
+.form-pending{max-width:760px;padding:24px;border-left:4px solid var(--red);background:#e5ddce;color:var(--ink);line-height:1.5}
+.form-pending p:last-child{margin:0}
+.newsletter-form{align-self:center;max-width:520px;width:100%}
+.newsletter-form form{display:grid;gap:10px}
+.newsletter-form .outline{justify-self:start;color:var(--ink)}
+.newsletter-form button:disabled,.contact form button:disabled{opacity:.55;cursor:not-allowed}
+.policy-page{min-height:calc(100vh - 104px);max-width:100%}
+.policy-page p:not(.kicker){max-width:65ch;line-height:1.6;font-size:1.05rem}
+@media(min-width:1200px){.policy-page{padding-inline:max(9vw,calc((100vw - 2200px)/2))}}

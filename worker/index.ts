@@ -7,12 +7,12 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' https://i.ytimg.com https://*.ytimg.com data: blob:",
   "media-src 'self' blob:",
-  "connect-src 'self'",
+  "connect-src 'self' https://cloudflareinsights.com",
   "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://embed.music.apple.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -36,6 +36,27 @@ function withSecurityHeaders(response: Response): Response {
     statusText: response.statusText,
     headers,
   });
+}
+
+async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
+  const response = await handler.fetch(request, env, ctx);
+  if (!cache || request.method !== "GET") return response;
+
+  if (response.ok) {
+    const body = await response.clone().json().catch(() => null) as { videos?: unknown[] } | null;
+    if (body?.videos?.length) {
+      ctx.waitUntil(cache.put(request, response.clone()));
+      return response;
+    }
+  }
+
+  const cached = await cache.match(request);
+  if (!cached) return response;
+  const headers = new Headers(cached.headers);
+  headers.set("X-Data-Status", "stale");
+  headers.set("Cache-Control", "no-store");
+  return new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers });
 }
 
 const worker = {
@@ -63,7 +84,10 @@ const worker = {
         },
       }));
     }
-    return withSecurityHeaders(await handler.fetch(request, env, ctx));
+    const response = requestUrl.pathname === "/api/videos"
+      ? await withVideoCache(request, env, ctx)
+      : await handler.fetch(request, env, ctx);
+    return withSecurityHeaders(response);
   },
 };
 

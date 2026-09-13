@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const SITE_URL = "https://www.thefileswithdub.com";
 export const SITE_NAME = "The Files With Dub";
-export const SOCIAL_IMAGE = "/og.png";
+export const SOCIAL_IMAGE = "/og.webp";
 
 export const publicSeoRoutes = [
   { key: "home", path: "/", title: "Culture, Commentary & Media", description: "The Files With Dub is an independent Queens, New York platform for culture, commentary, interviews, and media production." },

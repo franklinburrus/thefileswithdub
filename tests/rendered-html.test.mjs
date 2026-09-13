@@ -99,16 +99,14 @@ test("retained pages expose one primary heading and labeled form controls", asyn
     assert.match(html, /id="main-content"/);
   }
 
+  const forms = await readFile(new URL("../app/components/site-forms.tsx", import.meta.url), "utf8");
+  for (const id of ["contact-purpose", "contact-name", "contact-email", "contact-message", "tip-message", "tip-source", "tip-follow-up"]) {
+    assert.match(forms, new RegExp(`htmlFor=\\"${id}\\"`));
+  }
   const contact = await (await render("/contact")).text();
-  assert.match(contact, /for="contact-purpose"/);
-  assert.match(contact, /for="contact-name"/);
-  assert.match(contact, /for="contact-email"/);
-  assert.match(contact, /for="contact-message"/);
-
   const spill = await (await render("/spill")).text();
-  assert.match(spill, /for="tip-message"/);
-  assert.match(spill, /for="tip-source"/);
-  assert.match(spill, /for="tip-follow-up"/);
+  assert.match(contact, /CONTACT DELIVERY PENDING/);
+  assert.match(spill, /TIP LINE DELIVERY PENDING/);
 });
 
 test("redirects external HTTP requests to HTTPS at the Worker boundary", async () => {
@@ -259,10 +257,11 @@ test("keeps the Outside calendar and playlist equal-height on desktop", async ()
 
 test("uses an on-site player and provides a cautious tip line", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
+  const forms = await readFile(new URL("../app/components/site-forms.tsx", import.meta.url), "utf8");
   assert.match(page, /youtube-nocookie\.com\/embed/);
   assert.match(page, /autoplay=1/);
   assert.match(page, /THE TIP LINE/);
-  assert.match(page, /not currently a secure or anonymous reporting channel/i);
+  assert.match(forms, /not an anonymous reporting channel/i);
   assert.doesNotMatch(page, /goToFeatured/);
   assert.doesNotMatch(page, /start-here/);
 });
@@ -328,11 +327,13 @@ test("serves sitemap and robots metadata routes and keeps Game out", async () =>
 
 test("keeps newsletter and policy language truthful while making the player responsive", async () => {
   const platform = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
+  const forms = await readFile(new URL("../app/components/site-forms.tsx", import.meta.url), "utf8");
+  const privacy = await readFile(new URL("../app/privacy/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(platform, /function Newsletter\(\)/);
-  assert.match(platform, /No newsletter information is collected or sent from this form/);
-  assert.doesNotMatch(platform, /accept the privacy policy/);
-  assert.match(platform, /Policies & accessibility information is pending owner review/);
+  assert.match(forms, /No newsletter information is collected or sent from this form/);
+  assert.doesNotMatch(forms, /accept the privacy policy/);
+  assert.match(privacy, /pending owner and counsel approval/);
   assert.match(platform, /closeOnEscape/);
   assert.match(platform, /closeButtonRef/);
   assert.match(platform, /previousFocusRef/);

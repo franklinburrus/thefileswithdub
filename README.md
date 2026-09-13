@@ -48,10 +48,28 @@ explicitly use `--env production` after the preview and infrastructure checks
 pass. Cloudflare account-level WAF, rate limiting, and zone security settings
 remain managed outside this repository.
 
+### Forms and privacy gate
+
+Contact, tip-line, and Dispatch signup UI is fail-closed by default. Keep
+`FORMS_MODE=disabled` until owner-approved privacy/terms copy, retention rules,
+an approved receiving workflow, and a sandbox delivery test are recorded. The
+server handlers require Cloudflare Turnstile verification and use Resend only
+when the required runtime variables/secrets are present. Configure names from
+`.env.example` in the target Wrangler environment; never commit values or put
+secrets in a client bundle. `FORMS_MODE=test` routes delivery to the dedicated
+test recipient, while `FORMS_MODE=live` enables the approved production
+workflow and double-opt-in newsletter confirmation.
+
+The supported preview command builds the vinext Worker and emits a generated
+configuration under `dist/server`. If a direct Wrangler deploy is needed after
+that build, use `npx wrangler deploy --config dist/server/wrangler.json` so the
+generated Worker entry is uploaded rather than the source-only wrapper.
+
 ## Verify locally
 
 ```bash
 npm run verify
 ```
 
-Source snapshot: `3646ec97c3afca82cf809ec63341ee0837a3a67c`
+Source snapshot: `3646ec97c3afca82cf809ec63341ee0837a3a67c`; the current repair
+history is tracked in Git on `main`.
