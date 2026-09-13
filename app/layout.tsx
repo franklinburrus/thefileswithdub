@@ -34,7 +34,7 @@ const structuredData = {
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/og.webp`,
+      logo: `${SITE_URL}/files-with-dub-logo.svg`,
       sameAs: ["https://www.youtube.com/@TheFilesWithDub", "https://x.com/TheFilesWithDUB", "https://www.patreon.com/cw/CANTDUBME"],
     },
     {

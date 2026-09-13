@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 150" role="img" aria-labelledby="title desc">
+  <title id="title">The Files With Dub</title>
+  <desc id="desc">The Files With Dub TF logo lockup.</desc>
+  <g transform="rotate(-4 73 75)">
+    <rect x="8" y="8" width="130" height="130" rx="3" fill="none" stroke="#eeb51b" stroke-width="6"/>
+    <text x="73" y="91" text-anchor="middle" fill="#eeb51b" font-family="Arial Black, Impact, sans-serif" font-size="48" font-weight="900" letter-spacing="-3">TF</text>
+  </g>
+  <text x="162" y="68" fill="#f1eadc" font-family="Arial Black, Impact, sans-serif" font-size="37" font-weight="900" letter-spacing="-1.7">THE FILES</text>
+  <text x="162" y="108" fill="#df4a34" font-family="Arial Black, Impact, sans-serif" font-size="28" font-weight="900" letter-spacing="3.4">WITH DUB</text>
+</svg>

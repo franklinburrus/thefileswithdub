@@ -88,3 +88,13 @@
 .contact-copy{max-width:360px;margin:0;color:#767269;line-height:1.55}
 .contact-channels{max-width:760px;width:100%;justify-self:start}
 @media(max-width:760px){.contact-intro{display:block}.contact-copy{margin-top:28px;max-width:65ch}}
+
+/* Shared logo lockup and the compact mobile header actions. */
+.files-logo{display:inline-flex;align-items:center;flex:0 0 auto;line-height:0}
+.files-logo img{display:block;width:clamp(145px,17vw,260px);height:auto}
+.action-arrow{display:inline-grid;place-items:center;width:24px;height:24px;margin-top:7px;border-radius:6px;background:linear-gradient(145deg,#b9d0df,#7694aa);box-shadow:inset 0 1px 1px #ffffff88;color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:700;line-height:1}
+.shop-link,.book-button{display:inline-flex;align-items:center;justify-content:center;gap:0;white-space:nowrap}
+.shop-link>span:first-child,.book-button>span:first-child{display:block}
+@media(max-width:1000px){.files-logo img{width:clamp(106px,28vw,180px)}}
+@media(max-width:760px){.shop-link,.book-button{flex-direction:column;min-height:48px;padding:6px 10px!important;gap:0}.shop-link{width:58px}.book-button{width:105px}.shop-link>span:first-child,.book-button>span:first-child{font-size:12px;line-height:1.05}.action-arrow{width:24px;height:24px;margin-top:5px}.files-logo img{width:108px}}
+@media(min-width:761px){.standalone-header .book-button{display:inline-flex}.shop-link>span:first-child,.book-button>span:first-child{display:inline-block}.action-arrow{margin-top:0;margin-left:7px}}

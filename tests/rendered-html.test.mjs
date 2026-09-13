@@ -25,6 +25,15 @@ test("server-renders The Files With Dub media platform", async () => {
   assert.doesNotMatch(html, /codex-preview/i);
 });
 
+test("uses the shared Files logo and reference header actions", async () => {
+  const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  assert.match(navigation, /files-with-dub-logo\.svg/);
+  assert.match(navigation, /className="action-arrow"/);
+  assert.match(navigation, /aria-label="Open the Files store"/);
+  assert.match(layout, /files-with-dub-logo\.svg/);
+});
+
 test("emits the Search Console ownership verification tag", async () => {
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   assert.match(layout, /verification:\s*\{\s*google:/);
