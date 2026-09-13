@@ -51,6 +51,7 @@ test("keeps standalone pages in the Files navigation", async () => {
   assert.match(navigation, /\["X", "\/broadcasts"\]/);
   assert.match(navigation, /\["Shop", "\/affiliate"\]/);
   assert.match(navigation, /menu-button/);
+  assert.match(navigation, /Escape/);
   assert.match(affiliate, /<SiteNavigation \/>/);
   assert.match(broadcasts, /<SiteNavigation \/>/);
   assert.match(patreon, /<SiteNavigation \/>/);
