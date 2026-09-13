@@ -42,3 +42,25 @@
 @media(max-width:760px){.files-logo{min-height:44px}.contact-card a,.footer-links a,.footer-links button{display:flex;align-items:center;min-height:44px}.footer-links button{padding:0}.footer-links a{padding:10px 0}}
 
 @media(max-width:760px){.contact-card .text-button{display:flex;align-items:center;min-height:44px;padding:10px 0;text-align:left;color:var(--gold)}}
+
+/* Large-screen readability: keep the editorial rhythm centered on 1080p and 4K displays. */
+@media(min-width:1200px){
+  .hero,.panel,.newsletter{padding-inline:max(9vw,calc((100vw - 2200px)/2))}
+  .site-header,footer{padding-inline:max(5vw,calc((100vw - 2200px)/2))}
+  .site-header nav a,.site-header nav button{font-size:12px}
+  .book-button,.shop-link,.solid,.outline{font-size:12px}
+  .contact-card a,.contact-card .text-button{font-size:12px}
+  .footer-links a,.footer-links button{font-size:11px}
+  .studio-grid .stack{width:100%;max-width:760px;justify-self:end}
+  .service-line p{max-width:58ch}
+  .schedule-destination{width:100%;max-width:1120px;margin-inline:auto}
+  .schedule-destination p{max-width:65ch}
+  .consult-card p{max-width:42ch}
+  .studio-page,.consulting-page{min-height:calc(100vh - 104px);display:flex;flex-direction:column;justify-content:center}
+  .contact,.about{min-height:calc(100vh - 104px)}
+  .contact{align-content:center}
+}
+@media(min-width:761px){
+  .media-card h3,.path-grid h3,.service-line h3,.consult-card h3,.nightlife-list h3{line-height:1.05}
+  .contact form{max-width:760px}
+}
