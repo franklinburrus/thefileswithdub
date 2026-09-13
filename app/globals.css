@@ -73,5 +73,6 @@
 .newsletter-form .outline{justify-self:start;color:var(--ink)}
 .newsletter-form button:disabled,.contact form button:disabled{opacity:.55;cursor:not-allowed}
 .policy-page{min-height:calc(100vh - 104px);max-width:100%}
+.policy-page h1{overflow-wrap:anywhere;word-break:break-word}
 .policy-page p:not(.kicker){max-width:65ch;line-height:1.6;font-size:1.05rem}
 @media(min-width:1200px){.policy-page{padding-inline:max(9vw,calc((100vw - 2200px)/2))}}

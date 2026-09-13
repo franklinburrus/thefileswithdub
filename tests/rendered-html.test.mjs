@@ -345,6 +345,7 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(styles, /overflow-wrap:anywhere/);
   assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
   assert.match(styles, /\.contact-card \.text-button/);
+  assert.match(styles, /\.policy-page h1\{overflow-wrap:anywhere;word-break:break-word\}/);
 });
 
 test("adds a guarded Worker boundary for headers, secrets, and upstream fetches", async () => {
