@@ -341,6 +341,7 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(styles, /max-height:calc\(100dvh - 40px\)/);
   assert.match(styles, /overflow-wrap:anywhere/);
   assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
+  assert.match(styles, /\.contact-card \.text-button/);
 });
 
 test("adds a guarded Worker boundary for headers, secrets, and upstream fetches", async () => {
@@ -368,5 +369,7 @@ test("adds a guarded Worker boundary for headers, secrets, and upstream fetches"
   assert.match(media, /MAX_MANIFEST_BYTES/);
   assert.match(media, /url\.username \|\| url\.password \|\| url\.port \|\| url\.hash/);
   assert.match(videos, /YOUTUBE_VIDEO_ID/);
+  assert.match(videos, /attempt < 3/);
+  assert.match(videos, /X-Data-Status/);
   assert.match(nightlife, /approvedEventUrl/);
 });

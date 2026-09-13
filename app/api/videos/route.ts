@@ -52,12 +52,30 @@ function videosFromFeed(xml: string): Video[] {
 
 export async function GET() {
   try {
-    const response = await fetchWithTimeout(feedUrl, { headers: { "User-Agent": "The-Files-With-Dub-Updates/1.0" } });
-    if (!response.ok) throw new Error("YouTube feed unavailable");
+    let response: Response | null = null;
+    // YouTube's public RSS edge intermittently answers 404 for this channel
+    // even when the same request succeeds moments later. Retry a bounded
+    // number of times before exposing the existing client fallback state.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const candidate = await fetchWithTimeout(feedUrl, {
+        headers: {
+          Accept: "application/atom+xml,application/xml;q=0.9,*/*;q=0.8",
+          "User-Agent": "The-Files-With-Dub-Updates/1.0",
+        },
+      });
+      if (candidate.ok) {
+        response = candidate;
+        break;
+      }
+    }
+    if (!response) throw new Error("YouTube feed unavailable");
     const videos = videosFromFeed(await readTextWithLimit(response, MAX_FEED_BYTES));
     if (!videos.length) throw new Error("YouTube feed was empty");
     return Response.json({ videos, source: "youtube" }, { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } });
   } catch {
-    return Response.json({ videos: [], source: "unavailable" }, { status: 502, headers: { "Cache-Control": "no-store" } });
+    return Response.json(
+      { videos: [], source: "unavailable" },
+      { headers: { "Cache-Control": "no-store", "X-Data-Status": "degraded" } },
+    );
   }
 }
