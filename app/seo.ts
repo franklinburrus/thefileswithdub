@@ -13,7 +13,7 @@ export const publicSeoRoutes = [
   { key: "studio", path: "/studio", title: "Podcast & Video Production in Queens", description: "Explore The Files With Dub studio options for audio podcasts, video podcasts, and multi-camera production in Queens, New York." },
   { key: "consulting", path: "/consulting", title: "Media Strategy for Creators", description: "The Files With Dub offers focused media strategy, content audits, and podcast launch guidance for creators and shows." },
   { key: "spill", path: "/spill", title: "The Tip Line", description: "Share context, a lead, or a source with The Files With Dub through the clearly labeled, non-secure tip-line preparation form." },
-  { key: "contact", path: "/contact", title: "Contact", description: "Find the right contact path for The Files With Dub, including general inquiries, event information, and media conversations." },
+  { key: "contact", path: "/contact", title: "Contact", description: "Reach The Files With Dub through verified social and source channels for media, events, and collaboration." },
   { key: "about", path: "/about", title: "About", description: "Learn about The Files With Dub, an independent Queens, New York platform for culture, commentary, interviews, and production." },
 ] as const;
 

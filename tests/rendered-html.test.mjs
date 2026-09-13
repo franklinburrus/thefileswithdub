@@ -105,7 +105,9 @@ test("retained pages expose one primary heading and labeled form controls", asyn
   }
   const contact = await (await render("/contact")).text();
   const spill = await (await render("/spill")).text();
-  assert.match(contact, /CONTACT DELIVERY PENDING/);
+  assert.doesNotMatch(contact, /CONTACT DELIVERY PENDING/);
+  assert.match(contact, /SOCIAL \/ SOURCE CHANNELS/);
+  assert.match(contact, /Choose a verified social or source channel above/);
   assert.match(spill, /TIP LINE DELIVERY PENDING/);
 });
 
@@ -220,6 +222,11 @@ test("places the studio booking destination directly after the session options",
   assert.doesNotMatch(studio[1], /<\/div><ScheduleDestination kind="studio" \/>/);
   for (const duration of ["1 hour", "2 hours", "3 hours", "4 hours"]) assert.match(page, new RegExp(`\\["${duration}"`));
   assert.doesNotMatch(page, /Audio podcast session|Video podcast session|Multi-camera production/);
+  for (const slug of ["30-minute-meeting-clone", "30-minute-meeting-clone-1", "30-minute-meeting-clone-2", "30-minute-meeting-clone-3"]) {
+    assert.match(page, new RegExp(`https://calendly\\.com/dubwiththefiles/${slug}`));
+  }
+  assert.match(page, /className="service-link"/);
+  assert.match(page, /Book \{name\} ↗/);
 });
 
 test("keeps Outside current and balances the Apple Music panel with the calendar", async () => {
@@ -335,7 +342,8 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(platform, /function Newsletter\(\)/);
   assert.match(forms, /No newsletter information is collected or sent from this form/);
   assert.doesNotMatch(forms, /accept the privacy policy/);
-  assert.match(privacy, /pending owner and counsel approval/);
+  assert.match(privacy, /Template notice/);
+  assert.match(privacy, /Third-party services/);
   assert.match(platform, /closeOnEscape/);
   assert.match(platform, /closeButtonRef/);
   assert.match(platform, /previousFocusRef/);
@@ -348,6 +356,7 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
   assert.match(styles, /\.contact-card \.text-button/);
   assert.match(styles, /\.policy-page h1\{overflow-wrap:anywhere;word-break:break-word\}/);
+  assert.match(styles, /\.policy-page h2/);
 });
 
 test("adds a guarded Worker boundary for headers, secrets, and upstream fetches", async () => {

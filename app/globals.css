@@ -75,4 +75,16 @@
 .policy-page{min-height:calc(100vh - 104px);max-width:100%}
 .policy-page h1{overflow-wrap:anywhere;word-break:break-word}
 .policy-page p:not(.kicker){max-width:65ch;line-height:1.6;font-size:1.05rem}
+.policy-page h2{max-width:65ch;margin:42px 0 12px;font-size:clamp(1.55rem,3vw,2.4rem);line-height:1.05;letter-spacing:-.04em}
+.policy-page ul{max-width:65ch;margin:0 0 18px;padding-left:1.25rem;line-height:1.6}
+.policy-page li+li{margin-top:8px}
+.policy-note{border-left:4px solid var(--red);background:#e5ddce;padding:16px 18px}
+.policy-page a{color:var(--red);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 @media(min-width:1200px){.policy-page{padding-inline:max(9vw,calc((100vw - 2200px)/2))}}
+@media(max-width:760px){.policy-page{padding-block:56px}.policy-page h1{font-size:clamp(2.8rem,12vw,4.5rem);line-height:.95}.policy-page p:not(.kicker){font-size:1rem;line-height:1.6}}
+.studio-page .service-line .service-link{display:inline-block;margin-top:14px;color:var(--red);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.contact-intro{grid-column:1/-1;display:grid;grid-template-columns:1fr .8fr;gap:55px;align-items:start}
+.contact-heading .contact-channels{margin-top:34px}
+.contact-copy{max-width:360px;margin:0;color:#767269;line-height:1.55}
+.contact-channels{max-width:760px;width:100%;justify-self:start}
+@media(max-width:760px){.contact-intro{display:block}.contact-copy{margin-top:28px;max-width:65ch}}
