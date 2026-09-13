@@ -7,16 +7,24 @@
   "main": "./worker/index.ts",
   "workers_dev": false,
   "preview_urls": true,
-  "routes": [
-    {
-      "pattern": "www.thefileswithdub.com/*",
-      "zone_name": "thefileswithdub.com"
-    }
-  ],
+  // A default deploy is deliberately unrouted. Use --env preview for QA or
+  // --env production only during an explicitly authorized cutover.
+  "routes": [],
   "env": {
     "preview": {
+      "name": "thefileswithdub-preview",
       "workers_dev": true,
       "routes": []
+    },
+    "production": {
+      "name": "thefileswithdub",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "www.thefileswithdub.com/*",
+          "zone_name": "thefileswithdub.com"
+        }
+      ]
     }
   },
   "assets": {
@@ -24,6 +32,15 @@
     "binding": "ASSETS"
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "redact_query_string": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1
+    }
   }
 }

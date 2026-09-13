@@ -306,3 +306,31 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(styles, /overflow-wrap:anywhere/);
   assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
 });
+
+test("adds a guarded Worker boundary for headers, secrets, and upstream fetches", async () => {
+  const worker = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
+  const config = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
+  const ignore = await readFile(new URL("../.gitignore", import.meta.url), "utf8");
+  const http = await readFile(new URL("../app/lib/http.ts", import.meta.url), "utf8");
+  const media = await readFile(new URL("../app/api/x-media/route.ts", import.meta.url), "utf8");
+  const videos = await readFile(new URL("../app/api/videos/route.ts", import.meta.url), "utf8");
+  const nightlife = await readFile(new URL("../app/api/nightlife/route.ts", import.meta.url), "utf8");
+
+  for (const header of ["Content-Security-Policy", "Strict-Transport-Security", "X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy"]) {
+    assert.match(worker, new RegExp(header));
+  }
+  assert.match(worker, /script-src 'self' 'unsafe-inline'/);
+  assert.match(config, /"routes": \[\]/);
+  assert.match(config, /"production"/);
+  assert.match(config, /"redact_query_string": true/);
+  assert.match(config, /"logs"[\s\S]*"enabled": true/);
+  assert.match(config, /"traces"[\s\S]*"head_sampling_rate": 0\.1/);
+  for (const pattern of [".env", ".env.*", ".dev.vars", "*.pem", "*.key"]) assert.match(ignore, new RegExp(`^${pattern.replace("*", "\\S*")}$`, "m"));
+  assert.match(http, /AbortController/);
+  assert.match(http, /readTextWithLimit/);
+  assert.match(media, /APPROVED_REPLAY_HOST/);
+  assert.match(media, /MAX_MANIFEST_BYTES/);
+  assert.match(media, /url\.username \|\| url\.password \|\| url\.port \|\| url\.hash/);
+  assert.match(videos, /YOUTUBE_VIDEO_ID/);
+  assert.match(nightlife, /approvedEventUrl/);
+});

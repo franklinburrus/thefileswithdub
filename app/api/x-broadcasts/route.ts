@@ -1,15 +1,18 @@
 import { extractReplayHlsUrl, xBroadcasts } from "../../lib/x-broadcasts";
+import { fetchWithTimeout, readTextWithLimit } from "../../lib/http";
+
+const MAX_BROADCAST_PAGE_BYTES = 4 * 1024 * 1024;
 
 export async function GET() {
   const broadcasts = await Promise.all(xBroadcasts.map(async broadcast => {
     try {
-      const response = await fetch(`https://x.com/i/broadcasts/${broadcast.id}`, {
+      const response = await fetchWithTimeout(`https://x.com/i/broadcasts/${broadcast.id}`, {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; TheFilesWithDub/1.0)",
         },
       });
       if (!response.ok) return { ...broadcast, hlsUrl: null };
-      const source = extractReplayHlsUrl(await response.text());
+      const source = extractReplayHlsUrl(await readTextWithLimit(response, MAX_BROADCAST_PAGE_BYTES));
       return {
         ...broadcast,
         hlsUrl: source ? `/api/x-media?url=${encodeURIComponent(source)}` : null,

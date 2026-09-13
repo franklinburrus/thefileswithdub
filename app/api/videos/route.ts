@@ -1,5 +1,10 @@
+import { fetchWithTimeout, readTextWithLimit } from "../../lib/http";
+
 const channelId = "UCPydZggyK7qQRp4VNUGXNgg";
 const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+const MAX_FEED_BYTES = 1_048_576;
+const MAX_TITLE_LENGTH = 240;
+const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 
 type Video = {
   id: number;
@@ -36,20 +41,20 @@ function videosFromFeed(xml: string): Video[] {
     const videoId = readTag(entry, "yt:videoId");
     return {
       id: index + 1,
-      title: readTag(entry, "title"),
+      title: readTag(entry, "title").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE_LENGTH),
       runtime: "New upload",
       date: publishedLabel(readTag(entry, "published")),
       videoId,
       image: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
     };
-  }).filter(video => Boolean(video.videoId && video.title));
+  }).filter(video => Boolean(video.title && YOUTUBE_VIDEO_ID.test(video.videoId)));
 }
 
 export async function GET() {
   try {
-    const response = await fetch(feedUrl, { headers: { "User-Agent": "The-Files-With-Dub-Updates/1.0" } });
+    const response = await fetchWithTimeout(feedUrl, { headers: { "User-Agent": "The-Files-With-Dub-Updates/1.0" } });
     if (!response.ok) throw new Error("YouTube feed unavailable");
-    const videos = videosFromFeed(await response.text());
+    const videos = videosFromFeed(await readTextWithLimit(response, MAX_FEED_BYTES));
     if (!videos.length) throw new Error("YouTube feed was empty");
     return Response.json({ videos, source: "youtube" }, { headers: { "Cache-Control": "public, max-age=300, s-maxage=300" } });
   } catch {
