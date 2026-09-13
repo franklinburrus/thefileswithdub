@@ -218,6 +218,8 @@ test("places the studio booking destination directly after the session options",
   assert.ok(studio);
   assert.ok(studio[1].indexOf("studioPackages.map") < studio[1].indexOf('<ScheduleDestination kind="studio"'));
   assert.doesNotMatch(studio[1], /<\/div><ScheduleDestination kind="studio" \/>/);
+  for (const duration of ["1 hour", "2 hours", "3 hours", "4 hours"]) assert.match(page, new RegExp(`\\["${duration}"`));
+  assert.doesNotMatch(page, /Audio podcast session|Video podcast session|Multi-camera production/);
 });
 
 test("keeps Outside current and balances the Apple Music panel with the calendar", async () => {

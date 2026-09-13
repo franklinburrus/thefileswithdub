@@ -48,9 +48,10 @@ const fallbackMedia: MediaItem[] = [
   { id: 16, title: "QueenzFlip Highlights Streaming Negativity", runtime: "YouTube", date: "YouTube", videoId: "VCUrtNN3laU", image: "https://i.ytimg.com/vi/VCUrtNN3laU/hqdefault.jpg" },
 ];
 const studioPackages = [
-  ["Audio podcast session", "A clear, conversation-first recording session with professional capture."],
-  ["Video podcast session", "A camera-ready recording session for full episodes, interviews, and visual clips."],
-  ["Multi-camera production", "A larger production plan for panels, campaign work, and special conversations."],
+  ["1 hour", "A focused studio block for a concise recording, interview, or production session."],
+  ["2 hours", "A flexible studio block for a full conversation, episode, or multi-part recording."],
+  ["3 hours", "An extended studio block for deeper interviews, multiple segments, or added production setup."],
+  ["4 hours", "A half-day studio block for panels, campaign work, or a larger production plan."],
 ] as const;
 const consultingServices = [
   ["Podcast launch consultation", "Format, first episodes, rollout, and the systems needed to begin with purpose."],
