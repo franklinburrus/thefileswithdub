@@ -25,6 +25,14 @@ test("server-renders The Files With Dub media platform", async () => {
   assert.doesNotMatch(html, /codex-preview/i);
 });
 
+test("emits the Search Console ownership verification tag", async () => {
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  assert.match(layout, /verification:\s*\{\s*google:/);
+  const response = await render();
+  const html = await response.text();
+  assert.match(html, /google-site-verification/);
+});
+
 test("uses the live Shopify storefront instead of simulated commerce", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
   assert.match(page, /https:\/\/9p7whp-1k\.myshopify\.com/i);

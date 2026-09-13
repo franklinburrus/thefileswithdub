@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
   description: "The Files With Dub is an independent Queens, New York platform for culture, commentary, interviews, and media production.",
   alternates: { canonical: SITE_URL },
+  verification: {
+    google: "F_izlNhQmUjVlZ382YU1E7XF0lklWpIWeJho2OnAECo",
+  },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     type: "website",
