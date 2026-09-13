@@ -90,11 +90,13 @@ test("each public route server-renders its unique page content", async () => {
 });
 
 test("retained pages expose one primary heading and labeled form controls", async () => {
-  const routes = ["/", "/files", "/outside", "/studio", "/consulting", "/spill", "/contact", "/about"];
+  const routes = ["/", "/files", "/outside", "/studio", "/consulting", "/spill", "/contact", "/about", "/broadcasts", "/patreon"];
   for (const path of routes) {
     const response = await render(path);
     const html = await response.text();
     assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `${path} should have one h1`);
+    assert.match(html, /href="#main-content"/);
+    assert.match(html, /id="main-content"/);
   }
 
   const contact = await (await render("/contact")).text();

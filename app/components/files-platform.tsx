@@ -85,8 +85,9 @@ export default function FilesPlatform({ page }: { page: Page }) {
     };
   }, [selected]);
 
-  return <main id="main-content">
+  return <>
     <SiteNavigation />
+    <main id="main-content">
     <div className="ticker">THE FILES <b>◆</b> QUEENS DESK <b>◆</b> AFTER HOURS <b>◆</b> KEEP THE RECORD</div>
 
     {page === "home" && <>
@@ -112,7 +113,8 @@ export default function FilesPlatform({ page }: { page: Page }) {
     <footer><Link className="files-logo" href="/"><span className="files-logo-seal">TF</span><span><strong>THE FILES</strong><em>WITH DUB</em></span></Link><p>© {new Date().getFullYear()} The Files With Dub</p><div className="footer-links"><a href={patreon} target="_blank" rel="noreferrer">Support on Patreon ↗</a><Link href="/broadcasts">X Broadcast archive</Link><Link href="/affiliate">Affiliate links</Link><button aria-label="Policies and accessibility information pending review" onClick={() => setNotice("Policies & accessibility information is pending owner review; this notice is not a published policy.")}>Policies pending review</button></div></footer>
     {selected && <div className="modal-bg" role="dialog" aria-modal="true" aria-label={`Playing ${selected.title}`}><div className="modal"><button ref={closeButtonRef} className="close" onClick={() => setSelected(null)} aria-label="Close player">×</button><div className="embed"><iframe src={`https://www.youtube-nocookie.com/embed/${selected.videoId}?autoplay=1&rel=0`} title={selected.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /></div><p className="kicker">THE FILES / YOUTUBE</p><h2>{selected.title}</h2><p>{selected.runtime} · {selected.date}</p><a className="solid" href={`https://www.youtube.com/watch?v=${selected.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div></div>}
     {notice && <div className="notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notice">×</button></div>}
-  </main>;
+    </main>
+  </>;
 }
 
 function SectionTitle({ overline, title, copy, heading = "h2" }: { overline: string; title: React.ReactNode; copy: string; heading?: "h1" | "h2" }) { const Heading = heading; return <div className="section-title"><div><p className="kicker">{overline}</p><Heading className="section-heading">{title}</Heading></div><p>{copy}</p></div>; }

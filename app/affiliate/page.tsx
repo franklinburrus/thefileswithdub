@@ -3,7 +3,7 @@ import SiteNavigation from "../components/site-navigation";
 import { amazonProducts, amazonStorefront } from "./catalog";
 
 export default function AffiliatePage() {
-  return <><SiteNavigation /><main className="affiliate-route panel light affiliate-page">
+  return <><SiteNavigation /><main id="main-content" className="affiliate-route panel light affiliate-page">
     <p className="kicker">THE FILES WITH DUB / AFFILIATE STORE</p>
     <h1>Dub’s<br /><em>picks.</em></h1>
     <div className="affiliate-intro">

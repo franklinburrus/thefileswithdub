@@ -29,7 +29,7 @@ export default function Broadcasts() {
       });
   }, []);
 
-  return <><SiteNavigation /><main className="panel light broadcasts-page">
+  return <><SiteNavigation /><main id="main-content" className="panel light broadcasts-page">
     <p className="kicker">THE FILES WITH DUB / X BROADCASTS</p>
     <h1 className="broadcast-title">Can’t DUB Me <em>Radio.</em></h1>
     <p>Watch Dub’s public X broadcast replays directly inside The Files.</p>

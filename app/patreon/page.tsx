@@ -8,7 +8,7 @@ export const metadata = metadataFor("patreon");
 const patreon = "https://www.patreon.com/cw/CANTDUBME";
 
 export default function PatreonPage() {
-  return <><SiteNavigation /><main className="panel light patreon-page">
+  return <><SiteNavigation /><main id="main-content" className="panel light patreon-page">
     <p className="kicker">THE FILES WITH DUB / MEMBERSHIP</p>
     <h1>Dub’s<br /><em>Patreon.</em></h1>
     <p>Watch, join, and manage your membership through Dub’s official Patreon home.</p>
