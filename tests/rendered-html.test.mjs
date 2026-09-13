@@ -300,6 +300,8 @@ test("keeps newsletter and policy language truthful while making the player resp
   assert.match(platform, /closeOnEscape/);
   assert.match(platform, /loading="eager"/);
   assert.match(platform, /referrerPolicy="strict-origin-when-cross-origin"/);
+  assert.match(platform, /loading="lazy"/);
+  assert.match(platform, /decoding="async"/);
   assert.match(styles, /max-height:calc\(100dvh - 40px\)/);
   assert.match(styles, /overflow-wrap:anywhere/);
   assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
