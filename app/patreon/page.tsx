@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import SiteNavigation from "../components/site-navigation";
+import { metadataFor } from "../seo";
+
+export const metadata = metadataFor("patreon");
 
 const patreon = "https://www.patreon.com/cw/CANTDUBME";
 

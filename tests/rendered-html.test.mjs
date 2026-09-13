@@ -249,3 +249,57 @@ test("refreshes the Files feed from Dub's YouTube uploads", async () => {
   assert.match(route, /Cache-Control.*s-maxage=300/);
   assert.match(route, /videosFromFeed/);
 });
+
+test("publishes crawlable metadata for retained routes", async () => {
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  const seo = await readFile(new URL("../app/seo.ts", import.meta.url), "utf8");
+  const sitemap = await readFile(new URL("../app/sitemap.ts", import.meta.url), "utf8");
+  const robots = await readFile(new URL("../app/robots.ts", import.meta.url), "utf8");
+  assert.match(layout, /metadataBase: new URL\(SITE_URL\)/);
+  assert.match(layout, /application\/ld\+json/);
+  assert.match(layout, /Organization/);
+  assert.match(seo, /https:\/\/www\.thefileswithdub\.com/);
+  for (const route of ["/", "/files", "/broadcasts", "/patreon", "/outside", "/studio", "/consulting", "/spill", "/contact", "/about"]) {
+    assert.match(seo, new RegExp(`path: "${route.replace("/", "\\/")}"`));
+  }
+  assert.doesNotMatch(sitemap, /affiliate|game/i);
+  assert.match(robots, /disallow/);
+  assert.match(robots, /sitemap\.xml/);
+
+  const response = await render("/about");
+  const html = await response.text();
+  assert.match(html, /<title>About \| The Files With Dub<\/title>/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/www\.thefileswithdub\.com\/about"\/>/);
+  assert.match(html, /<meta name="description"/);
+});
+
+test("serves sitemap and robots metadata routes and keeps Game out", async () => {
+  const sitemapResponse = await render("/sitemap.xml");
+  assert.equal(sitemapResponse.status, 200);
+  assert.match(sitemapResponse.headers.get("content-type") ?? "", /application\/xml/i);
+  const sitemap = await sitemapResponse.text();
+  assert.match(sitemap, /https:\/\/www\.thefileswithdub\.com\/broadcasts/);
+  assert.doesNotMatch(sitemap, /\/game|\/affiliate/);
+
+  const robotsResponse = await render("/robots.txt");
+  assert.equal(robotsResponse.status, 200);
+  const robots = await robotsResponse.text();
+  assert.match(robots, /Disallow: \/api\//);
+  assert.match(robots, /Disallow: \/game/);
+  assert.match(robots, /Sitemap: https:\/\/www\.thefileswithdub\.com\/sitemap\.xml/);
+});
+
+test("keeps newsletter and policy language truthful while making the player responsive", async () => {
+  const platform = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(platform, /function Newsletter\(\)/);
+  assert.match(platform, /No newsletter information is collected or sent from this form/);
+  assert.doesNotMatch(platform, /accept the privacy policy/);
+  assert.match(platform, /Policies & accessibility information is pending owner review/);
+  assert.match(platform, /closeOnEscape/);
+  assert.match(platform, /loading="eager"/);
+  assert.match(platform, /referrerPolicy="strict-origin-when-cross-origin"/);
+  assert.match(styles, /max-height:calc\(100dvh - 40px\)/);
+  assert.match(styles, /overflow-wrap:anywhere/);
+  assert.match(styles, /@media\(max-width:760px\)\{\.modal-bg\{padding:12px\}/);
+});

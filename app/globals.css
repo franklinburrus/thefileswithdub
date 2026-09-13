@@ -18,3 +18,13 @@
 .product-grid .product-visual{height:auto;aspect-ratio:1/1;background:#f7f4ee}
 .product-grid .product-visual>img{width:100%;height:100%;object-fit:contain;padding:10px}
 @media(max-width:760px){.unified-feed-tools p{margin-bottom:16px}.product-grid .product-visual{height:auto}}
+
+/* Audit-safe responsive player and truthful newsletter state */
+.modal-bg{overflow-y:auto}
+.modal{width:min(630px,100%);max-height:calc(100dvh - 40px);overflow:auto}
+.modal h2{overflow-wrap:anywhere}
+.modal .embed{width:100%;min-width:0}
+.modal .solid{display:inline-block}
+.newsletter-pending{align-self:center;max-width:520px;padding:24px;border:1px solid #171713;background:#f1eadc;color:#171713}
+.newsletter-pending p:last-child{margin:0;line-height:1.5}
+@media(max-width:760px){.modal-bg{padding:12px}.modal{max-height:calc(100dvh - 24px);padding:22px 18px}.modal .embed{margin-bottom:18px}.modal h2{font-size:clamp(1.75rem,9vw,3rem)}.newsletter-pending{margin-top:38px}}

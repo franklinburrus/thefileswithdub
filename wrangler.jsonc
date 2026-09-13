@@ -15,7 +15,8 @@
   ],
   "env": {
     "preview": {
-      "workers_dev": true
+      "workers_dev": true,
+      "routes": []
     }
   },
   "assets": {
