@@ -33,11 +33,11 @@ export default function SiteNavigation() {
   return <>
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="site-header standalone-header">
-    <Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-logo.svg" alt="The Files With Dub" width={260} height={75} priority /></Link>
+    <Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-globe-logo.png" alt="The Files With Dub" width={96} height={96} priority /></Link>
     <nav className={menu ? "nav-open" : ""} aria-label="Primary navigation">
       {links.map(([label, href]) => <Link href={href} key={href} onClick={() => setMenu(false)}>{label}</Link>)}
     </nav>
-    <div className="header-actions"><a className="shop-link" href="https://9p7whp-1k.myshopify.com" target="_blank" rel="noreferrer" aria-label="Open the Files store"><span>Store</span><span className="action-arrow" aria-hidden="true">↗</span></a><Link className="book-button" href="/studio" aria-label="Book the studio"><span>Book the studio</span><span className="action-arrow" aria-hidden="true">↗</span></Link><button className="menu-button" onClick={() => setMenu(!menu)} aria-label={menu ? "Close navigation" : "Open navigation"} aria-expanded={menu}>☰</button></div>
+    <div className="header-actions"><a className="shop-link header-button" href="https://9p7whp-1k.myshopify.com" target="_blank" rel="noreferrer" aria-label="Open the Files store"><span>Store</span><span className="action-arrow" aria-hidden="true">↗</span></a><Link className="book-button header-button" href="/studio" aria-label="Book the studio"><span>Book the studio</span><span className="action-arrow" aria-hidden="true">↗</span></Link><button className="menu-button" onClick={() => setMenu(!menu)} aria-label={menu ? "Close navigation" : "Open navigation"} aria-expanded={menu}>☰</button></div>
     </header>
   </>;
 }

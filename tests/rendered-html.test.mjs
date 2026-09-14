@@ -28,10 +28,12 @@ test("server-renders The Files With Dub media platform", async () => {
 test("uses the shared Files logo and reference header actions", async () => {
   const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.match(navigation, /files-with-dub-logo\.svg/);
+  assert.match(navigation, /files-with-dub-globe-logo\.png/);
+  assert.match(navigation, /className="shop-link header-button"/);
+  assert.match(navigation, /className="book-button header-button"/);
   assert.match(navigation, /className="action-arrow"/);
   assert.match(navigation, /aria-label="Open the Files store"/);
-  assert.match(layout, /files-with-dub-logo\.svg/);
+  assert.match(layout, /files-with-dub-globe-logo\.png/);
 });
 
 test("emits the Search Console ownership verification tag", async () => {
@@ -295,7 +297,7 @@ test("uses an on-site player and provides a cautious tip line", async () => {
 test("keeps the active identity free of discontinued show language", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(page, /files-logo-seal/);
+  assert.match(page, /files-with-dub-globe-logo\.png/);
   assert.doesNotMatch(page, /morning-show/i);
   assert.doesNotMatch(page, /on spaces/i);
   assert.match(styles, /object-fit:contain/i);
