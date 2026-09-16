@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#141414"/>
+  <rect x="24" y="24" width="1232" height="672" fill="none" stroke="#3a3a3a" stroke-width="2"/>
+  <text x="640" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="44" font-weight="700" fill="#e8e8e8" letter-spacing="6">THE FILES WITH DUB</text>
+  <text x="640" y="392" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" fill="#9a9a9a" letter-spacing="3">POSTER COMING SOON</text>
+</svg>
