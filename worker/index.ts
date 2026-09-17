@@ -54,21 +54,66 @@ function tagResponse(response: Response, name: string, value: string): Response 
   });
 }
 
+// Clean, explicit cache key: method + URL only. Never reuse the incoming
+// Request object — its headers/cookies/cf properties must not poison the
+// key or interact with Vary on stored responses.
+function cacheKey(request: Request): Request {
+  return new Request(request.url, { method: "GET" });
+}
+
+// Normalize a response into a safely storable copy for cache.put().
+// Cloudflare's Cache API honors response headers on put(): it throws on
+// `Vary: *` and fails (413) when Cache-Control forbids caching, so both are
+// normalized here. Set-Cookie is never cached. Only a clone's body branch
+// is consumed; the caller's response stays untouched.
+function toStorableClone(response: Response, cacheControl: string): Response {
+  const headers = new Headers(response.headers);
+  headers.delete("set-cookie");
+  headers.delete("vary");
+  headers.set("Cache-Control", cacheControl);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+// Fire-and-forget cache write with visible errors. A failed put used to be
+// swallowed silently, which made every request a cold miss with no trace —
+// now failures land in Cloudflare Logs via console.error.
+function storeInBackground(
+  ctx: ExecutionContext,
+  cache: Cache,
+  key: Request,
+  response: Response,
+  cacheControl: string,
+  label: string,
+): void {
+  const storable = toStorableClone(response.clone(), cacheControl);
+  ctx.waitUntil(
+    cache.put(key, storable).then(
+      () => console.log(`[edge-cache] stored ${label}`),
+      (error: unknown) => console.error(`[edge-cache] put failed for ${label}:`, error),
+    ),
+  );
+}
+
 async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   // /api/videos fetches the YouTube RSS feed (up to 3 retries) per request.
-  // Serve the edge-cached feed while fresh (s-maxage=300 on the response),
-  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  // Serve the edge-cached feed while fresh, regenerating only on a miss.
+  // Local dev has no Cache API — pass through.
   const cache = edgeCache();
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return tagResponse(cached, "X-Videos-Cache", "HIT");
 
   const response = await handler.fetch(request, env, ctx);
   if (response.ok) {
     const body = await response.clone().json().catch(() => null) as { videos?: unknown[] } | null;
     if (body?.videos?.length) {
-      ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+      storeInBackground(ctx, cache, key, response, "public, max-age=300, s-maxage=300", "videos");
       return tagResponse(response, "X-Videos-Cache", "MISS");
     }
   }
@@ -77,16 +122,19 @@ async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext)
 
 async function withNightlifeCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   // /api/nightlife fans out to ~13 Eventbrite fetches per request.
-  // Serve the edge-cached listing while fresh (s-maxage=900 on the response),
-  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  // Serve the edge-cached listing while fresh, regenerating only on a miss.
+  // Local dev has no Cache API — pass through.
   const cache = edgeCache();
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return tagResponse(cached, "X-Nightlife-Cache", "HIT");
 
   const response = await handler.fetch(request, env, ctx);
-  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+  if (response.ok) {
+    storeInBackground(ctx, cache, key, response, "public, max-age=900, s-maxage=900", "nightlife");
+  }
   return tagResponse(response, "X-Nightlife-Cache", "MISS");
 }
 
@@ -101,46 +149,42 @@ async function withXMediaCache(request: Request, env: Env, ctx: ExecutionContext
     return handler.fetch(request, env, ctx);
   }
 
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return tagResponse(cached, "X-XMedia-Cache", "HIT");
 
   const response = await handler.fetch(request, env, ctx);
-  const headers = new Headers(response.headers);
-  headers.set("X-XMedia-Cache", "MISS");
   if (response.ok) {
     const contentType = (response.headers.get("Content-Type") ?? "").toLowerCase();
     const cacheControl = response.headers.get("Cache-Control") ?? "";
     const isManifest = contentType.includes("mpegurl");
-    if (!isManifest && !/no-store/i.test(cacheControl) && !/private/i.test(cacheControl)) {
-      headers.set("Cache-Control", "public, max-age=86400, s-maxage=86400, immutable");
-    }
-    const tagged = new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
-    ctx.waitUntil(cache.put(request, tagged.clone()).catch(() => {}));
-    return tagged;
+    // Segments are immutable — cache long. Manifests (and anything the
+    // origin marks no-store/private) get a short, explicit TTL so the put
+    // always succeeds instead of failing silently on origin directives.
+    const storableControl =
+      !isManifest && !/no-store/i.test(cacheControl) && !/private/i.test(cacheControl)
+        ? "public, max-age=86400, s-maxage=86400, immutable"
+        : "public, max-age=60, s-maxage=60";
+    storeInBackground(ctx, cache, key, response, storableControl, "x-media");
   }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return tagResponse(response, "X-XMedia-Cache", "MISS");
 }
 
 async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   // /api/x-broadcasts fans out to ~56 x.com page fetches per request (~5s).
-  // Serve the edge-cached catalog while fresh (s-maxage=900 on the response),
-  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  // Serve the edge-cached catalog while fresh, regenerating only on a miss.
+  // Local dev has no Cache API — pass through.
   const cache = edgeCache();
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
-  const cached = await cache.match(request);
+  const key = cacheKey(request);
+  const cached = await cache.match(key);
   if (cached) return tagResponse(cached, "X-Broadcasts-Cache", "HIT");
 
   const response = await handler.fetch(request, env, ctx);
-  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+  if (response.ok) {
+    storeInBackground(ctx, cache, key, response, "public, max-age=300, s-maxage=900", "x-broadcasts");
+  }
   return tagResponse(response, "X-Broadcasts-Cache", "MISS");
 }
 
