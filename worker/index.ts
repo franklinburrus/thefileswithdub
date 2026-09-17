@@ -59,6 +59,21 @@ async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext)
   return new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers });
 }
 
+async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  // /api/x-broadcasts fans out to ~56 x.com page fetches per request (~5s).
+  // Serve the edge-cached catalog while fresh (s-maxage=900 on the response),
+  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
+  if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
+
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const response = await handler.fetch(request, env, ctx);
+  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()));
+  return response;
+}
+
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const requestUrl = new URL(request.url);
@@ -86,7 +101,9 @@ const worker = {
     }
     const response = requestUrl.pathname === "/api/videos"
       ? await withVideoCache(request, env, ctx)
-      : await handler.fetch(request, env, ctx);
+      : requestUrl.pathname === "/api/x-broadcasts"
+        ? await withBroadcastsCache(request, env, ctx)
+        : await handler.fetch(request, env, ctx);
     return withSecurityHeaders(response);
   },
 };
