@@ -67,11 +67,21 @@ async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionCon
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
   const cached = await cache.match(request);
-  if (cached) return cached;
+  if (cached) {
+    const headers = new Headers(cached.headers);
+    headers.set("X-Broadcasts-Cache", "HIT");
+    return new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers });
+  }
 
   const response = await handler.fetch(request, env, ctx);
-  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()));
-  return response;
+  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+  const missHeaders = new Headers(response.headers);
+  missHeaders.set("X-Broadcasts-Cache", "MISS");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: missHeaders,
+  });
 }
 
 const worker = {
