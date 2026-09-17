@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import HlsVideo from "../components/hls-video";
 import SiteNavigation from "../components/site-navigation";
-import { xBroadcasts, type XBroadcastReplay } from "../lib/x-broadcasts";
+import { xBroadcasts, displayTitleFor, type XBroadcastReplay } from "../lib/x-broadcasts";
 
 export default function Broadcasts() {
   const [broadcasts, setBroadcasts] = useState<XBroadcastReplay[]>(
@@ -37,19 +37,19 @@ export default function Broadcasts() {
       <div className="broadcast-toolbar">
         <div>
           <p className="kicker">NOW PLAYING / X REPLAY</p>
-          <h2>{selected.title}</h2>
+          <h2>{displayTitleFor(selected)}</h2>
         </div>
         <span className="broadcast-source-state">{archiveStatus === "loading" ? "Resolving replay…" : archiveStatus === "ready" ? "Files-native playback" : "Archive source unavailable"}</span>
       </div>
       {archiveStatus === "loading"
-        ? <div className="broadcast-player"><Image src={selected.poster} alt="" fill priority sizes="(max-width: 760px) 100vw, 82vw" unoptimized /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
-        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={selected.title} />}
+        ? <div className="broadcast-player"><Image src={selected.poster} alt={displayTitleFor(selected)} fill priority sizes="(max-width: 760px) 100vw, 82vw" unoptimized /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
+        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={displayTitleFor(selected)} />}
     </section>
     <div className="broadcast-list">
       {broadcasts.map((broadcast, index) => <button className={broadcast.id === selected.id ? "active" : ""} key={broadcast.id} onClick={() => setSelectedId(broadcast.id)} aria-pressed={broadcast.id === selected.id}>
-        <Image src={broadcast.poster} alt="" width={360} height={203} unoptimized />
+        <Image src={broadcast.poster} alt={displayTitleFor(broadcast)} width={360} height={203} unoptimized />
         <span>REPLAY {String(index + 1).padStart(2, "0")}</span>
-        <h2>{broadcast.title}</h2>
+        <h2>{displayTitleFor(broadcast)}</h2>
         <b>{broadcast.hlsUrl === null && archiveStatus !== "loading" ? "Source unavailable" : "Play replay"}</b>
       </button>)}
     </div>

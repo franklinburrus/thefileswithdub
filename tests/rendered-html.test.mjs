@@ -415,3 +415,32 @@ test("adds a guarded Worker boundary for headers, secrets, and upstream fetches"
   assert.match(videos, /X-Data-Status/);
   assert.match(nightlife, /approvedEventUrl/);
 });
+
+test("broadcasts page renders descriptive titles instead of empty headings", async () => {
+  const html = await (await render("/broadcasts")).text();
+  assert.doesNotMatch(html, /<h2><\/h2>/, "empty h2 headings on /broadcasts");
+  assert.doesNotMatch(html, /<h2>\s*<\/h2>/, "whitespace-only h2 on /broadcasts");
+  // 46+ episodes still lack sheet titles: they must show a factual date label.
+  assert.match(html, /X Broadcast — [A-Z][a-z]+ \d{1,2}, \d{4}/);
+});
+
+test("broadcasts layout ships ItemList + VideoObject structured data", async () => {
+  const html = await (await render("/broadcasts")).text();
+  assert.match(html, /application\/ld\+json/);
+  assert.match(html, /"@type":"ItemList"/);
+  assert.match(html, /"@type":"VideoObject"/);
+  assert.match(html, /"@type":"ListItem"/);
+  assert.doesNotMatch(html, /"name":""\s*[,}]/, "VideoObject with empty name");
+});
+
+test("displayTitleFor prefers sheet titles and falls back to factual labels", async () => {
+  const catalog = await readFile(new URL("../app/lib/x-broadcasts.ts", import.meta.url), "utf8");
+  assert.match(catalog, /export function displayTitleFor/);
+  assert.match(catalog, /X Broadcast — \$/);
+  // No entry in the generated catalog may carry an empty date without a real title either.
+  const ids = [...catalog.matchAll(/^\s*\{\s*id: "([^"]+)", title: "([^"]*)", poster: "[^"]+", date: "([^"]*)"/gm)];
+  assert.ok(ids.length > 0, "expected dated catalog entries");
+  for (const [, , title, date] of ids) {
+    if (!title) assert.match(date, /^\d{4}-\d{2}-\d{2}$/, "blank title needs a dated fallback");
+  }
+});

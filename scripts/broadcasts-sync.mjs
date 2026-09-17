@@ -9,6 +9,9 @@
  *             falling back to the episode key when unparseable.
  *   - "Broadcast Titles" tab: col A = episode key, col B = broadcast-level title.
  *     Episodes with no title are reported and left blank — titles are never invented.
+ *     Each entry also carries the episode date (key-embedded YYYY-MM-DD, else
+ *     Master Library col A) so the site can render a factual date-based display
+ *     label instead of an empty heading while titles stay blank.
  *   - public/broadcasts/<id>.png|.jpg for poster art; episodes without a poster
  *     file use PLACEHOLDER_POSTER (never a broken path).
  *
@@ -104,7 +107,12 @@ for (const ep of episodes.values()) {
 
   const title = titles.get(ep.key) ?? "";
   if (!title) missingTitles.push(ep.key);
-  entries.push({ id, title, poster: posterFor(id), key: ep.key });
+  // Factual date for display fallbacks (never invents a title): prefer the
+  // YYYY-MM-DD embedded in the episode key, else the Master Library date col.
+  const keyDate = episodeDate(ep.key);
+  const colDate = String(ep.date ?? "").match(/(\d{4})-(\d{2})-(\d{2})/);
+  const date = keyDate || (colDate ? `${colDate[1]}-${colDate[2]}-${colDate[3]}` : "");
+  entries.push({ id, title, poster: posterFor(id), date, key: ep.key });
 }
 
 // Newest episode first. Keys embed YYYY-MM-DD, so sort by date desc, then key.
@@ -118,7 +126,7 @@ entries.sort((a, b) =>
 
 // --- Render the generated region -------------------------------------------
 const lines = entries.map(
-  e => `  { id: ${tsString(e.id)}, title: ${tsString(e.title)}, poster: ${tsString(e.poster)} },`,
+  e => `  { id: ${tsString(e.id)}, title: ${tsString(e.title)}, poster: ${tsString(e.poster)}, date: ${tsString(e.date)} },`,
 );
 const generated = [
   GENERATED_BEGIN,
