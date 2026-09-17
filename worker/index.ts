@@ -157,14 +157,16 @@ async function withXMediaCache(request: Request, env: Env, ctx: ExecutionContext
   if (response.ok) {
     const contentType = (response.headers.get("Content-Type") ?? "").toLowerCase();
     const cacheControl = response.headers.get("Cache-Control") ?? "";
-    const isManifest = contentType.includes("mpegurl");
-    // Segments are immutable — cache long. Manifests (and anything the
-    // origin marks no-store/private) get a short, explicit TTL so the put
-    // always succeeds instead of failing silently on origin directives.
-    const storableControl =
-      !isManifest && !/no-store/i.test(cacheControl) && !/private/i.test(cacheControl)
-        ? "public, max-age=86400, s-maxage=86400, immutable"
-        : "public, max-age=60, s-maxage=60";
+    // Respect upstream privacy directives: never cache what the origin marks
+    // no-store or private — skip the write instead of overriding it.
+    // Segments are immutable (unique URLs) — cache long. Manifests get a
+    // short TTL so concurrent viewers share them.
+    if (/no-store/i.test(cacheControl) || /private/i.test(cacheControl)) {
+      return tagResponse(response, "X-XMedia-Cache", "MISS");
+    }
+    const storableControl = contentType.includes("mpegurl")
+      ? "public, max-age=60, s-maxage=60"
+      : "public, max-age=86400, s-maxage=86400, immutable";
     storeInBackground(ctx, cache, key, response, storableControl, "x-media");
   }
   return tagResponse(response, "X-XMedia-Cache", "MISS");
