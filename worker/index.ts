@@ -38,50 +38,110 @@ function withSecurityHeaders(response: Response): Response {
   });
 }
 
-async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
-  const response = await handler.fetch(request, env, ctx);
-  if (!cache || request.method !== "GET") return response;
+type EdgeCache = { default?: Cache };
 
+function edgeCache(): Cache | undefined {
+  return (globalThis as unknown as { caches?: EdgeCache }).caches?.default;
+}
+
+function tagResponse(response: Response, name: string, value: string): Response {
+  const headers = new Headers(response.headers);
+  headers.set(name, value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function withVideoCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  // /api/videos fetches the YouTube RSS feed (up to 3 retries) per request.
+  // Serve the edge-cached feed while fresh (s-maxage=300 on the response),
+  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  const cache = edgeCache();
+  if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
+
+  const cached = await cache.match(request);
+  if (cached) return tagResponse(cached, "X-Videos-Cache", "HIT");
+
+  const response = await handler.fetch(request, env, ctx);
   if (response.ok) {
     const body = await response.clone().json().catch(() => null) as { videos?: unknown[] } | null;
     if (body?.videos?.length) {
-      ctx.waitUntil(cache.put(request, response.clone()));
-      return response;
+      ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+      return tagResponse(response, "X-Videos-Cache", "MISS");
     }
+  }
+  return tagResponse(response, "X-Videos-Cache", "MISS");
+}
+
+async function withNightlifeCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  // /api/nightlife fans out to ~13 Eventbrite fetches per request.
+  // Serve the edge-cached listing while fresh (s-maxage=900 on the response),
+  // regenerating only on a miss. Local dev has no Cache API — pass through.
+  const cache = edgeCache();
+  if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
+
+  const cached = await cache.match(request);
+  if (cached) return tagResponse(cached, "X-Nightlife-Cache", "HIT");
+
+  const response = await handler.fetch(request, env, ctx);
+  if (response.ok) ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
+  return tagResponse(response, "X-Nightlife-Cache", "MISS");
+}
+
+async function withXMediaCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  // /api/x-media proxies HLS manifests/segments from *.video.pscp.tv.
+  // Segments are immutable (unique URLs) — cache them long at the edge.
+  // Range requests pass through uncached: the cache key doesn't include
+  // Range, so a cached 206 must never be served for a full request.
+  // Local dev has no Cache API — pass through.
+  const cache = edgeCache();
+  if (!cache || request.method !== "GET" || request.headers.has("range")) {
+    return handler.fetch(request, env, ctx);
   }
 
   const cached = await cache.match(request);
-  if (!cached) return response;
-  const headers = new Headers(cached.headers);
-  headers.set("X-Data-Status", "stale");
-  headers.set("Cache-Control", "no-store");
-  return new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers });
+  if (cached) return tagResponse(cached, "X-XMedia-Cache", "HIT");
+
+  const response = await handler.fetch(request, env, ctx);
+  const headers = new Headers(response.headers);
+  headers.set("X-XMedia-Cache", "MISS");
+  if (response.ok) {
+    const contentType = (response.headers.get("Content-Type") ?? "").toLowerCase();
+    const cacheControl = response.headers.get("Cache-Control") ?? "";
+    const isManifest = contentType.includes("mpegurl");
+    if (!isManifest && !/no-store/i.test(cacheControl) && !/private/i.test(cacheControl)) {
+      headers.set("Cache-Control", "public, max-age=86400, s-maxage=86400, immutable");
+    }
+    const tagged = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+    ctx.waitUntil(cache.put(request, tagged.clone()).catch(() => {}));
+    return tagged;
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   // /api/x-broadcasts fans out to ~56 x.com page fetches per request (~5s).
   // Serve the edge-cached catalog while fresh (s-maxage=900 on the response),
   // regenerating only on a miss. Local dev has no Cache API — pass through.
-  const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default;
+  const cache = edgeCache();
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
   const cached = await cache.match(request);
-  if (cached) {
-    const headers = new Headers(cached.headers);
-    headers.set("X-Broadcasts-Cache", "HIT");
-    return new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers });
-  }
+  if (cached) return tagResponse(cached, "X-Broadcasts-Cache", "HIT");
 
   const response = await handler.fetch(request, env, ctx);
   if (response.ok) ctx.waitUntil(cache.put(request, response.clone()).catch(() => {}));
-  const missHeaders = new Headers(response.headers);
-  missHeaders.set("X-Broadcasts-Cache", "MISS");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: missHeaders,
-  });
+  return tagResponse(response, "X-Broadcasts-Cache", "MISS");
 }
 
 const worker = {
@@ -109,11 +169,19 @@ const worker = {
         },
       }));
     }
-    const response = requestUrl.pathname === "/api/videos"
-      ? await withVideoCache(request, env, ctx)
-      : requestUrl.pathname === "/api/x-broadcasts"
-        ? await withBroadcastsCache(request, env, ctx)
-        : await handler.fetch(request, env, ctx);
+    let response: Response;
+    const pathname = requestUrl.pathname;
+    if (pathname === "/api/videos") {
+      response = await withVideoCache(request, env, ctx);
+    } else if (pathname === "/api/x-broadcasts") {
+      response = await withBroadcastsCache(request, env, ctx);
+    } else if (pathname === "/api/nightlife") {
+      response = await withNightlifeCache(request, env, ctx);
+    } else if (pathname === "/api/x-media") {
+      response = await withXMediaCache(request, env, ctx);
+    } else {
+      response = await handler.fetch(request, env, ctx);
+    }
     return withSecurityHeaders(response);
   },
 };

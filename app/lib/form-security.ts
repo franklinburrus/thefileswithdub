@@ -40,7 +40,9 @@ export async function readJsonBody(request: Request): Promise<Record<string, unk
 
 export function sameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  if (!origin) return true;
+  // Browsers always send Origin on same-origin POSTs. A missing Origin means
+  // a non-browser client — reject rather than wave it through.
+  if (!origin) return false;
   try {
     return new URL(origin).origin === new URL(request.url).origin;
   } catch {
