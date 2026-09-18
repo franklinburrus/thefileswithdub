@@ -61,9 +61,11 @@ full-res gaussian blur and visually identical behind the foreground.)
 
 2026-09-18: Frank: "transition to posting on IG without the black boxes at
 the top and bottom… I want to continue that going forward." 7-27 campaign
-clips 1–5 had already published with letterboxing (unfixable); clips 6–8
-got vertical re-renders swapped into their scheduled IG posts; all later
-clips ship both variants from the start.
+clips 1–5 had already published with letterboxing (unfixable); clips 7–8
+got vertical re-renders swapped into their scheduled IG posts before
+publishing; clip 6's 8:30 AM post published with the letterbox asset
+before Buffer's API rate limit cleared and could not be fixed after
+publishing; all later clips ship both variants from the start.
 
 Also recorded in: the Ledger (Project Decisions + Avoid List, 2026-09-18),
 Notion, AGENTS.md, and MEMORY.md.
