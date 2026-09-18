@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   verification: {
     google: "F_izlNhQmUjVlZ382YU1E7XF0lklWpIWeJho2OnAECo",
   },
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg", apple: "/apple-touch-icon.png" },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,

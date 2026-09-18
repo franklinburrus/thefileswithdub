@@ -1,0 +1,18 @@
+# Cache content-hashed Next.js assets immutably
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Long-lived caching for static image assets (filenames are not
+# content-hashed, so NOT immutable — revalidate after a year)
+/*.png
+  Cache-Control: public, max-age=31536000
+/*.webp
+  Cache-Control: public, max-age=31536000
+/*.jpg
+  Cache-Control: public, max-age=31536000
+/*.jpeg
+  Cache-Control: public, max-age=31536000
+/*.svg
+  Cache-Control: public, max-age=31536000
+/broadcasts/*
+  Cache-Control: public, max-age=31536000

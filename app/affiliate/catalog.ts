@@ -11,7 +11,7 @@ export type AmazonProduct = {
 };
 
 const cantDubUsStore = "https://www.amazon.com/shop/dubhere/list/297YHKL7CRWUL?tag=omarilee-20&ref_=cm_sw_r_apin_aipsfshop_F7N6H5XEB9GGS3ZSJ8G2&ccs_id=84ce42c9-c070-4e45-890d-3d218787ecd4";
-const storefrontImage = "/amazon-cant-dub-us-store.png";
+const storefrontImage = "/amazon-cant-dub-us-store.webp";
 
 export const amazonProducts: AmazonProduct[] = [
   { brand: "Plant Guru", title: "Raw African Black Soap, 8 oz. Bar", category: "Self care", image: { src: "/amazon-african-black-soap.png", position: "center", fit: "contain" }, sponsoredDestination: cantDubUsStore },
