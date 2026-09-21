@@ -1,5 +1,14 @@
 /** Cloudflare Worker entry point for the vinext application. */
 import handler from "vinext/server/app-router-entry";
+import {
+  BROADCASTS_KV_KEY,
+  catalogFromResponseBody,
+  isCatalogStale,
+  mergeCatalog,
+  parseCatalog,
+  resolveCatalog,
+  type HlsCatalog,
+} from "../app/lib/broadcasts-catalog";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -173,11 +182,12 @@ async function withXMediaCache(request: Request, env: Env, ctx: ExecutionContext
 }
 
 async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  // /api/x-broadcasts fans out to ~56 x.com page fetches per request (~5s).
-  // Serve the edge-cached catalog while fresh, regenerating only on a miss.
-  // Local dev has no Cache API — pass through.
-  const cache = edgeCache();
-  if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
+  // /api/x-broadcasts fans out to ~50 x.com page fetches per request (~9s).
+  // Three layers: edge Cache API (L1), durable KV catalog (L2), live fan-out
+  // (L3, today's behavior). KV reads don't count as Worker subrequests and
+  // are cross-PoP, so a warm KV makes every request fast without the fan-out.
+  // Local dev has no Cache API and usually no KV binding — both are optional.
+  if (request.method !== "GET") return handler.fetch(request, env, ctx);
 
   // /api/x-broadcasts ignores query strings (there are no documented params),
   // so key on the pathname alone. This keeps unique `?x=<random>` URLs from
@@ -185,14 +195,77 @@ async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionCon
   // Scoped to this endpoint only: /api/x-media legitimately keys on ?url=.
   const broadcastsUrl = new URL(request.url);
   const key = cacheKey(new Request(`${broadcastsUrl.origin}${broadcastsUrl.pathname}`, { method: "GET" }));
-  const cached = await cache.match(key);
-  if (cached) return tagResponse(cached, "X-Broadcasts-Cache", "HIT");
+  const cache = edgeCache();
+  if (cache) {
+    const cached = await cache.match(key);
+    if (cached) return tagResponse(cached, "X-Broadcasts-Cache", "HIT");
+  }
+
+  const kv = broadcastsKv(env);
+  if (kv) {
+    const catalog = await readCatalog(kv);
+    if (catalog) {
+      // Stale-while-revalidate: serve immediately, refresh behind the scenes.
+      if (isCatalogStale(catalog)) {
+        ctx.waitUntil(
+          refreshCatalog(kv, "stale-reread").catch((error: unknown) =>
+            console.error("[broadcasts-kv] background refresh failed:", error),
+          ),
+        );
+      }
+      const response = Response.json(mergeCatalog(catalog), {
+        headers: { "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600" },
+      });
+      const tagged = tagResponse(response, "X-Broadcasts-Source", "kv");
+      if (cache) {
+        storeInBackground(ctx, cache, key, tagged, "public, max-age=300, s-maxage=900", "x-broadcasts");
+      }
+      return tagged;
+    }
+  }
 
   const response = await handler.fetch(request, env, ctx);
   if (response.ok) {
-    storeInBackground(ctx, cache, key, response, "public, max-age=300, s-maxage=900", "x-broadcasts");
+    if (cache) {
+      storeInBackground(ctx, cache, key, response, "public, max-age=300, s-maxage=900", "x-broadcasts");
+    }
+    // Seed KV from the live response so the next request skips the fan-out.
+    if (kv) {
+      const clone = response.clone();
+      ctx.waitUntil(
+        (async () => {
+          const catalog = catalogFromResponseBody(await clone.json().catch(() => null));
+          if (catalog) await writeCatalog(kv, catalog, "lazy-seed");
+        })().catch((error: unknown) => console.error("[broadcasts-kv] lazy seed failed:", error)),
+      );
+    }
   }
-  return tagResponse(response, "X-Broadcasts-Cache", "MISS");
+  const miss = tagResponse(response, "X-Broadcasts-Cache", "MISS");
+  return tagResponse(miss, "X-Broadcasts-Source", "origin");
+}
+
+/** The KV binding is absent in local dev — treat it as optional everywhere. */
+function broadcastsKv(env: Env): KVNamespace | undefined {
+  return env.BROADCASTS_KV ?? undefined;
+}
+
+async function readCatalog(kv: KVNamespace): Promise<HlsCatalog | null> {
+  try {
+    return parseCatalog(await kv.get(BROADCASTS_KV_KEY, "json"));
+  } catch (error: unknown) {
+    console.error("[broadcasts-kv] KV read failed:", error);
+    return null;
+  }
+}
+
+async function writeCatalog(kv: KVNamespace, catalog: HlsCatalog, label: string): Promise<void> {
+  await kv.put(BROADCASTS_KV_KEY, JSON.stringify(catalog));
+  console.log(`[broadcasts-kv] stored catalog (${label}): ${Object.keys(catalog.urls).length} entries`);
+}
+
+async function refreshCatalog(kv: KVNamespace, label: string): Promise<void> {
+  const catalog = await resolveCatalog();
+  await writeCatalog(kv, catalog, label);
 }
 
 const worker = {
@@ -234,6 +307,21 @@ const worker = {
       response = await handler.fetch(request, env, ctx);
     }
     return withSecurityHeaders(response);
+  },
+
+  // Cron refresh for the KV broadcasts catalog (wrangler.jsonc triggers).
+  // Keeps HLS URLs fresh without any visitor request paying the fan-out.
+  async scheduled(_event: { cron: string }, env: Env, ctx: ExecutionContext): Promise<void> {
+    const kv = broadcastsKv(env);
+    if (!kv) {
+      console.log("[broadcasts-kv] scheduled refresh skipped: BROADCASTS_KV not bound");
+      return;
+    }
+    ctx.waitUntil(
+      refreshCatalog(kv, "cron").catch((error: unknown) =>
+        console.error("[broadcasts-kv] scheduled refresh failed:", error),
+      ),
+    );
   },
 };
 

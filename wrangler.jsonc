@@ -40,6 +40,15 @@
     "directory": "./dist/client",
     "binding": "ASSETS"
   },
+  "kv_namespaces": [
+    {
+      "binding": "BROADCASTS_KV",
+      "id": "b6d04834005e47f09602c7a671915747"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
   "observability": {
     "enabled": true,
     "redact_query_string": true,

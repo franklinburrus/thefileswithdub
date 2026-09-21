@@ -197,6 +197,7 @@ test("publishes a full-size X broadcast replay view with the official X player",
   const api = await readFile(new URL("../app/api/x-broadcasts/route.ts", import.meta.url), "utf8");
   const proxy = await readFile(new URL("../app/api/x-media/route.ts", import.meta.url), "utf8");
   const catalog = await readFile(new URL("../app/lib/x-broadcasts.ts", import.meta.url), "utf8");
+  const catalogModule = await readFile(new URL("../app/lib/broadcasts-catalog.ts", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/start-here.css", import.meta.url), "utf8");
   // The broadcasts list is generated from the Clip Library master sheet
   // (npm run broadcasts:sync), not hand-edited.
@@ -214,8 +215,12 @@ test("publishes a full-size X broadcast replay view with the official X player",
   assert.match(player, /<video ref=\{videoRef\} controls playsInline preload="metadata"/);
   assert.match(player, /Hls\.isSupported\(\)/);
   assert.match(player, /application\/vnd\.apple\.mpegurl/);
-  assert.match(api, /extractReplayHlsUrl/);
-  assert.match(api, /\/api\/x-media\?url=/);
+  assert.match(api, /broadcasts-catalog/);
+  assert.match(api, /resolveCatalog/);
+  // The replay-URL extraction and /api/x-media proxy mapping live in the
+  // shared catalog module (also consumed by the worker's KV layer).
+  assert.match(catalogModule, /extractReplayHlsUrl/);
+  assert.match(catalogModule, /\/api\/x-media\?url=/);
   assert.match(proxy, /rewriteManifest/);
   assert.match(proxy, /video\.pscp\.tv/);
   assert.doesNotMatch(page, /https:\/\/x\.com|Open on X|Watch the full replay on X/i);
