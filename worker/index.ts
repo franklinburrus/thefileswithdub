@@ -179,7 +179,12 @@ async function withBroadcastsCache(request: Request, env: Env, ctx: ExecutionCon
   const cache = edgeCache();
   if (!cache || request.method !== "GET") return handler.fetch(request, env, ctx);
 
-  const key = cacheKey(request);
+  // /api/x-broadcasts ignores query strings (there are no documented params),
+  // so key on the pathname alone. This keeps unique `?x=<random>` URLs from
+  // bypassing the edge cache and re-triggering the x.com fan-out.
+  // Scoped to this endpoint only: /api/x-media legitimately keys on ?url=.
+  const broadcastsUrl = new URL(request.url);
+  const key = cacheKey(new Request(`${broadcastsUrl.origin}${broadcastsUrl.pathname}`, { method: "GET" }));
   const cached = await cache.match(key);
   if (cached) return tagResponse(cached, "X-Broadcasts-Cache", "HIT");
 

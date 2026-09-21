@@ -136,6 +136,17 @@ const generated = [
   GENERATED_END,
 ].join("\n");
 
+// --- Poison check: a sheet title containing the generated-region marker
+// would corrupt the splice on the NEXT sync (time-delayed build break).
+// Reject BEFORE the target file is modified; the operator renames the
+// title in the sheet and re-runs. Check the rendered entry lines, not the
+// whole block, so the real delimiters never false-positive. ---
+const markerLines = lines.filter(l => l.includes(GENERATED_BEGIN) || l.includes(GENERATED_END));
+if (markerLines.length) {
+  for (const l of markerLines) console.error(`  - marker-containing entry: ${l}`);
+  throw new Error(`broadcasts:sync aborted: ${markerLines.length} broadcast title(s) contain the generated-region marker text — rename them in the sheet`);
+}
+
 // --- Splice into the target file, preserving everything else ---------------
 let source = readFileSync(TARGET_FILE, "utf8");
 const beginIdx = source.indexOf(GENERATED_BEGIN);

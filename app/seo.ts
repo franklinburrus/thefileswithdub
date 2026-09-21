@@ -4,6 +4,15 @@ export const SITE_URL = "https://www.thefileswithdub.com";
 export const SITE_NAME = "The Files With Dub";
 export const SOCIAL_IMAGE = "/og.webp";
 
+/** Serialize an object for embedding in <script type="application/ld+json">.
+ *  Escapes `<` so a value can never terminate the script element early —
+ *  JSON consumers decode \u003c back to `<`, so the structured data is
+ *  semantically unchanged. Use instead of raw JSON.stringify() in
+ *  dangerouslySetInnerHTML for JSON-LD. */
+export function safeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export const publicSeoRoutes = [
   { key: "home", path: "/", title: "Culture, Commentary & Media", description: "The Files With Dub is an independent Queens, New York platform for culture, commentary, interviews, and media production." },
   { key: "files", path: "/files", title: "Clips & Interviews", description: "Browse the latest Files With Dub clips, interviews, and conversations sourced from Dub's public YouTube channel." },

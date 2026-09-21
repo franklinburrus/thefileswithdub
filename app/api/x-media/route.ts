@@ -76,6 +76,12 @@ export async function GET(request: Request) {
     return replayError("Replay source unavailable", response.status || 502);
   }
 
+  // The allowlist was validated on the *initial* URL; fetch() follows
+  // redirects by default. Re-validate the final URL before proxying, so an
+  // upstream redirect can never leave the approved origin set.
+  const finalUrl = approvedReplayUrl(response.url);
+  if (!finalUrl) return replayError("Replay redirect outside approved source", 400);
+
   const contentType = response.headers.get("content-type") ?? "application/octet-stream";
   const headers = new Headers({
     "Content-Type": contentType,
@@ -88,9 +94,9 @@ export async function GET(request: Request) {
   if (contentRange) headers.set("Content-Range", contentRange);
   if (response.headers.get("accept-ranges")) headers.set("Accept-Ranges", "bytes");
 
-  if (contentType.toLowerCase().includes("mpegurl") || source.pathname.endsWith(".m3u8")) {
+  if (contentType.toLowerCase().includes("mpegurl") || finalUrl.pathname.endsWith(".m3u8")) {
     try {
-      return new Response(rewriteManifest(await readTextWithLimit(response, MAX_MANIFEST_BYTES), source), { status: response.status, headers });
+      return new Response(rewriteManifest(await readTextWithLimit(response, MAX_MANIFEST_BYTES), finalUrl), { status: response.status, headers });
     } catch {
       return replayError("Replay manifest unavailable", 502);
     }

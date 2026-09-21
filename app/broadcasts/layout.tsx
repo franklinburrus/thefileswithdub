@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { metadataFor, SITE_URL } from "../seo";
+import { metadataFor, SITE_URL, safeJsonLd } from "../seo";
 import { displayTitleFor, xBroadcasts } from "../lib/x-broadcasts";
 
 export const metadata: Metadata = metadataFor("broadcasts");
@@ -25,5 +25,5 @@ const archiveStructuredData = {
 };
 
 export default function BroadcastsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(archiveStructuredData) }} />{children}</>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(archiveStructuredData) }} />{children}</>;
 }
