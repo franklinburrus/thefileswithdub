@@ -29,8 +29,8 @@ export const CATALOG_STALE_MS = 6 * 60 * 60 * 1000;
 
 const MAX_BROADCAST_PAGE_BYTES = 4 * 1024 * 1024;
 // Cloudflare Workers cap subrequests at 50 per invocation; keep concurrent
-// upstream fetches well under that limit.
-const FETCH_CONCURRENCY = 8;
+// upstream fetches under that limit while sizing the fan-out down.
+const FETCH_CONCURRENCY = 16;
 
 export type HlsCatalog = {
   resolvedAt: number;
@@ -111,11 +111,20 @@ async function resolveOne(broadcast: XBroadcast): Promise<[string, string | null
   }
 }
 
-/** Resolve every broadcast's replay HLS URL (the expensive fan-out). */
-export async function resolveCatalog(): Promise<HlsCatalog> {
-  const urls: Record<string, string | null> = {};
-  for (let i = 0; i < xBroadcasts.length; i += FETCH_CONCURRENCY) {
-    const chunk = await Promise.all(xBroadcasts.slice(i, i + FETCH_CONCURRENCY).map(resolveOne));
+/**
+ * Resolve every broadcast's replay HLS URL (the expensive fan-out).
+ *
+ * When `existing` is provided, only broadcasts missing from its URL map are
+ * fetched — replay URLs are long-lived, so a refresh that already knows 54
+ * of 56 broadcasts does 2 fetches instead of 56. Known entries (including
+ * nulls) are carried over untouched; resolvedAt always reflects this run.
+ */
+export async function resolveCatalog(existing?: HlsCatalog): Promise<HlsCatalog> {
+  const known = existing?.urls ?? {};
+  const pending = xBroadcasts.filter((broadcast) => !Object.hasOwn(known, broadcast.id));
+  const urls: Record<string, string | null> = { ...known };
+  for (let i = 0; i < pending.length; i += FETCH_CONCURRENCY) {
+    const chunk = await Promise.all(pending.slice(i, i + FETCH_CONCURRENCY).map(resolveOne));
     for (const [id, url] of chunk) urls[id] = url;
   }
   return { resolvedAt: Date.now(), urls };

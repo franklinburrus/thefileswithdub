@@ -215,3 +215,88 @@ test("scheduled refresh over hostile HTML persists only https URLs or null", asy
     assert.ok(url === null || url.startsWith("https://"), `unexpected URL persisted: ${url}`);
   }
 });
+
+test("scheduled refresh with a fresh catalog only resolves missing broadcasts", async (t) => {
+  const instance = await worker();
+  const m3u8 = "https://video.twimg.com/periscope-replay/v1/seed.m3u8";
+  const { calls, binding } = fakeKv();
+  const exec = execution();
+  t.after(() => { fetchHandler = defaultFetchHandler; });
+  fetchHandler = async () => new Response(X_HTML(m3u8), { status: 200 });
+
+  // Full refresh once to learn every broadcast id.
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+  const full = JSON.parse(calls.puts.at(-1)[1]);
+  const ids = Object.keys(full.urls);
+  assert.ok(ids.length > 40, `expected the full catalog, got ${ids.length} entries`);
+
+  // Re-seed KV with a FRESH catalog that is missing two broadcasts.
+  const dropped = ids.slice(0, 2);
+  const partial = {};
+  for (const id of ids.slice(2)) partial[id] = full.urls[id];
+  await binding.put(KV_KEY, catalogOf(partial));
+  calls.puts.length = 0;
+
+  let fetches = 0;
+  fetchHandler = async () => {
+    fetches++;
+    return new Response(X_HTML(m3u8), { status: 200 });
+  };
+
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+
+  assert.equal(fetches, 2, `expected only the 2 missing broadcasts to be fetched, got ${fetches}`);
+  const stored = JSON.parse(calls.puts.at(-1)[1]);
+  assert.equal(Object.keys(stored.urls).length, ids.length, "catalog covers every broadcast again");
+  for (const id of dropped) assert.equal(stored.urls[id], m3u8, "missing broadcast resolved");
+  for (const id of ids.slice(2)) {
+    assert.equal(stored.urls[id], full.urls[id], "known URLs preserved, not re-fetched");
+  }
+});
+
+test("scheduled refresh fully re-resolves a stale catalog", async (t) => {
+  const instance = await worker();
+  const oldUrl = "https://video.twimg.com/periscope-replay/v1/old.m3u8";
+  const newUrl = "https://video.twimg.com/periscope-replay/v1/fresh.m3u8";
+  const { calls, binding } = fakeKv({
+    [KV_KEY]: catalogOf({ "1DxLdZjlmrQxm": oldUrl }, Date.now() - 12 * 60 * 60 * 1000),
+  });
+  const exec = execution();
+  t.after(() => { fetchHandler = defaultFetchHandler; });
+  fetchHandler = async () => new Response(X_HTML(newUrl), { status: 200 });
+
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+
+  const stored = JSON.parse(calls.puts.at(-1)[1]);
+  assert.equal(stored.urls["1DxLdZjlmrQxm"], newUrl, "stale catalog gets a full re-resolution");
+});
+
+test("cold resolution fans out at 16 concurrent upstream fetches", async (t) => {
+  const instance = await worker();
+  const { binding } = fakeKv();
+  const exec = execution();
+  t.after(() => { fetchHandler = defaultFetchHandler; });
+
+  let inFlight = 0;
+  let maxInFlight = 0;
+  fetchHandler = async () => {
+    inFlight++;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    try {
+      // Yield so concurrently-started fetches overlap in flight; a
+      // synchronous stub body would serialize them and measure nothing.
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      return new Response(X_HTML("https://video.twimg.com/periscope-replay/v1/x.m3u8"), { status: 200 });
+    } finally {
+      inFlight--;
+    }
+  };
+
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+
+  assert.equal(maxInFlight, 16, `expected 16-way fan-out, observed ${maxInFlight}`);
+});

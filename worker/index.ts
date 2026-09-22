@@ -264,7 +264,12 @@ async function writeCatalog(kv: KVNamespace, catalog: HlsCatalog, label: string)
 }
 
 async function refreshCatalog(kv: KVNamespace, label: string): Promise<void> {
-  const catalog = await resolveCatalog();
+  // Incremental refresh: a fresh catalog only needs the broadcasts that are
+  // missing from KV (typically 0-2 after a deploy adds new ones). A stale or
+  // absent catalog gets the full re-resolution so dead entries are retried.
+  const existing = await readCatalog(kv);
+  const catalog =
+    existing && !isCatalogStale(existing) ? await resolveCatalog(existing) : await resolveCatalog();
   await writeCatalog(kv, catalog, label);
 }
 
