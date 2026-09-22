@@ -69,3 +69,8 @@ publishing; all later clips ship both variants from the start.
 
 Also recorded in: the Ledger (Project Decisions + Avoid List, 2026-09-18),
 Notion, AGENTS.md, and MEMORY.md.
+
+
+---
+
+**Canonical source — supersedes copies elsewhere.**
