@@ -85,3 +85,8 @@ blocked by Buffer's 24h rate limit); all affected clips re-rendered.
 Also recorded in: the Ledger (Project Decisions + Avoid List), Notion
 ("Audio Clip Framework — THE FILES WITH DUB"), and the workspace template
 pack `readme-x-audio-only-clips/`.
+
+
+---
+
+**Canonical source — supersedes copies elsewhere.**
