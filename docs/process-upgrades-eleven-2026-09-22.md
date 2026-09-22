@@ -139,3 +139,8 @@ and are kept separate so each reviewer's list reads complete.
 - **The Ledger (learning index):** the learning stories behind each upgrade.
 - **Project map:** the per-project wiring (owners, movement dates,
   dependencies, pop-up log).
+
+
+---
+
+**Canonical source — supersedes copies elsewhere.**
