@@ -35,3 +35,14 @@ provenance against this folder before PASS.
 
 Recorded 2026-09-22 in AGENTS.md, MEMORY.md, the Ledger (Project Decisions),
 and the media department plan. Canonical source — supersedes copies elsewhere.
+
+## Daily cadence (2026-09-22 ~6:06 PM ET, Frank's order)
+
+- From the 25-episode Downie pull (Frank downloads on his Mac; he already had
+  the newest 3): clip ONE clip per day for Dub's YouTube, working OLDEST
+  episode to NEWEST.
+- The treatment applies to every clip in this cadence; QA provenance check
+  before every PASS, same as above.
+- Upload path heads-up: until Dub's YouTube login is in the shared browser
+  session, the daily upload run ends as BLOCKED. Production can queue clips;
+  uploads wait on the login. No API-key route exists — browser login only.
