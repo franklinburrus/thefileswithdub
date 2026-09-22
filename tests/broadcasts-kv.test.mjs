@@ -274,7 +274,7 @@ test("scheduled refresh fully re-resolves a stale catalog", async (t) => {
   assert.equal(stored.urls["1DxLdZjlmrQxm"], newUrl, "stale catalog gets a full re-resolution");
 });
 
-test("cold resolution fans out at 16 concurrent upstream fetches", async (t) => {
+test("cold resolution fans out at 32 concurrent upstream fetches", async (t) => {
   const instance = await worker();
   const { binding } = fakeKv();
   const exec = execution();
@@ -298,5 +298,5 @@ test("cold resolution fans out at 16 concurrent upstream fetches", async (t) => 
   await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
   await exec.settle();
 
-  assert.equal(maxInFlight, 16, `expected 16-way fan-out, observed ${maxInFlight}`);
+  assert.equal(maxInFlight, 32, `expected 32-way fan-out, observed ${maxInFlight}`);
 });

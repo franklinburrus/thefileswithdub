@@ -28,9 +28,10 @@ export const BROADCASTS_KV_KEY = "x-broadcasts:hls-v1";
 export const CATALOG_STALE_MS = 6 * 60 * 60 * 1000;
 
 const MAX_BROADCAST_PAGE_BYTES = 4 * 1024 * 1024;
-// Cloudflare Workers cap subrequests at 50 per invocation; keep concurrent
-// upstream fetches under that limit while sizing the fan-out down.
-const FETCH_CONCURRENCY = 16;
+// Workers Paid raises the subrequest cap to 10,000 per invocation (up from 50
+// on Free), so the cold fan-out can run wider: 56 broadcasts resolve in two
+// batches instead of four, roughly halving full-refresh latency.
+const FETCH_CONCURRENCY = 32;
 
 export type HlsCatalog = {
   resolvedAt: number;
