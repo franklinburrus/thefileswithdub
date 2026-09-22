@@ -1,7 +1,7 @@
 # YouTube Monetization Law
 
-**Law — approved by Frank 2026-09-22.** EVERY YouTube post must be marked
-monetized. A published video without monetization is a defect — fix same run.
+**Law â approved by Frank 2026-09-22.** EVERY YouTube post must be marked
+monetized. A published video without monetization is a defect â fix same run.
 
 ## Required settings on every upload
 
@@ -13,7 +13,7 @@ monetized. A published video without monetization is a defect — fix same run.
 ## Verification
 
 Verified on the 2026-09-22 test post. Written into the `dub-youtube-daily-upload`
-job body — the browser upload task checks these four settings before leaving
+job body â the browser upload task checks these four settings before leaving
 the Studio page.
 
-Recorded 2026-09-22 in AGENTS.md. This doc is the canonical text home.
+Recorded 2026-09-22 in AGENTS.md. Canonical source — supersedes copies elsewhere.
