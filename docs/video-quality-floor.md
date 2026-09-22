@@ -46,3 +46,8 @@ the HD chase. The 360p file was quarantined, not clipped.
 - `ig-reel-format.md` — 1080×1920 full-bleed for IG, no letterbox bars.
 - Both assume 1080p sources; this document makes the floor explicit and
   universal across both rooms.
+
+
+---
+
+**Canonical source — supersedes copies elsewhere.**
