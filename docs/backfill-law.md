@@ -1,7 +1,7 @@
-# Backfill Law — Buffer Queues Stay Full
+# Backfill Law â Buffer Queues Stay Full
 
-**Law — approved by Frank 2026-09-22.** Buffer queues stay FULL at all times.
-If slots are empty, backfill automatically — no asking, no waiting for a
+**Law â approved by Frank 2026-09-22.** Buffer queues stay FULL at all times.
+If slots are empty, backfill automatically â no asking, no waiting for a
 decision. An empty queue is a defect, not a question.
 
 ## The rule
@@ -19,7 +19,7 @@ When backfilling empty slots, in this order:
 
 1. Content already produced and QA-passed for the empty slots.
 2. Any ready QA-passed content.
-3. Never schedule substandard / un-QA'd content — report the blocking or
+3. Never schedule substandard / un-QA'd content â report the blocking or
    missing production if the gap can't be filled.
 
 ## Guardrails
@@ -29,5 +29,4 @@ When backfilling empty slots, in this order:
 - Backfill content still goes through the lane's normal route (Apache: API
   only; Cherokee: website only).
 
-Recorded 2026-09-22 in AGENTS.md and MEMORY.md. This doc is the canonical
-text home.
+Recorded 2026-09-22 in AGENTS.md and MEMORY.md. Canonical source — supersedes copies elsewhere.
