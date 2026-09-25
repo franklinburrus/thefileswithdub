@@ -23,6 +23,7 @@ export const publicSeoRoutes = [
   { key: "consulting", path: "/consulting", title: "Media Strategy for Creators", description: "The Files With Dub offers focused media strategy, content audits, and podcast launch guidance for creators and shows." },
   { key: "spill", path: "/spill", title: "The Tip Line", description: "Share context, a lead, or a source with The Files With Dub through the clearly labeled, non-secure tip-line preparation form." },
   { key: "contact", path: "/contact", title: "Contact", description: "Reach The Files With Dub through verified social and source channels for media, events, and collaboration." },
+  { key: "links", path: "/links", title: "Links", description: "Everywhere The Files With Dub lives online: the latest episode, the newsletter, the podcast, Patreon, socials, and sponsorship contact." },
   { key: "about", path: "/about", title: "About", description: "Learn about The Files With Dub, an independent Queens, New York platform for culture, commentary, interviews, and production." },
 ] as const;
 
