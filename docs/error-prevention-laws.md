@@ -4,6 +4,15 @@ Every error or rework item from 2026-09-26 gets a law, a safeguard (mechanism),
 and a process (steps). Laws already written earlier the same day are referenced,
 not repeated.
 
+**Recovery annotation — 2026-09-27:** Paths under `~/workspace/` below refer
+to Muse's runtime and are not portable source locations or proof that a check
+ran. The audio template source is versioned in LaunchPad at
+`templates/audio-post/`; its portability repair is pending in LaunchPad PR #43.
+The report, ingest, and delivery guardrails claimed in the Ledger still need
+their runtime files, execution logs, and item-level outputs independently
+verified. Caption, render, and supervisor verdicts are separate records in
+`per-render-qa-record.md`. Production remains held.
+
 ## 1. Asset decodability gate (truncated TikTok downloads)
 
 **The error:** 6 of 16 TikTok assets downloaded truncated; container durations
