@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { loadNightlife } from "../app/lib/nightlife-state.mjs";
 
 async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -263,17 +264,35 @@ test("places the studio booking destination directly after the session options",
 
 test("keeps Outside current and balances the Apple Music panel with the calendar", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
+  const state = await readFile(new URL("../app/lib/nightlife-state.mjs", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/start-here.css", import.meta.url), "utf8");
   assert.match(page, /Loading the current New York nightlife listings/i);
-  assert.match(page, /Array\.isArray\(data\.events\)/);
-  assert.match(page, /setStatus\(currentEvents\.length \? "live" : "empty"\)/);
-  assert.match(page, /setStatus\("unavailable"\)/);
+  assert.match(page, /loadNightlife\(\)/);
+  assert.match(state, /Array\.isArray\(data\.events\)/);
   assert.match(page, /No upcoming listings are currently available/i);
   assert.match(page, /Current listings are unavailable/i);
   assert.match(page, /role="status" aria-live="polite"/);
   assert.match(page, /useState<Array<\{ title: string; when: string; venue: string; note: string; href: string \}>>\(\[\]\)/i);
   assert.match(styles, /\.live-files-grid\{align-items:stretch\}/i);
   assert.match(styles, /\.nightlife-calendar,\.apple-playlist\{height:100%;display:flex;flex-direction:column\}/i);
+});
+
+test("classifies nightlife feed live, empty, HTTP, malformed, and network outcomes", async () => {
+  const event = { title: "Example", when: "Today", venue: "New York", note: "Tickets", href: "https://www.eventbrite.com/e/example" };
+  const live = await loadNightlife(async () => Response.json({ events: [event] }));
+  assert.deepEqual(live, { events: [event], status: "live" });
+
+  const empty = await loadNightlife(async () => Response.json({ events: [] }));
+  assert.deepEqual(empty, { events: [], status: "empty" });
+
+  const failed = await loadNightlife(async () => Response.json({ events: [] }, { status: 503 }));
+  assert.deepEqual(failed, { events: [], status: "unavailable" });
+
+  const malformed = await loadNightlife(async () => Response.json({ events: "not-an-array" }));
+  assert.deepEqual(malformed, { events: [], status: "unavailable" });
+
+  const offline = await loadNightlife(async () => { throw new Error("offline"); });
+  assert.deepEqual(offline, { events: [], status: "unavailable" });
 });
 
 test("presents every clip in one unified Files feed", async () => {

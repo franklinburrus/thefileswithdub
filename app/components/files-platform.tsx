@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { loadNightlife } from "../lib/nightlife-state.mjs";
 import SiteNavigation from "./site-navigation";
 import { NewsletterSignup, TipForm } from "./site-forms";
 
@@ -151,20 +152,10 @@ function NightlifeCalendar() {
   const [status, setStatus] = useState<"loading" | "live" | "empty" | "unavailable">("loading");
 
   useEffect(() => {
-    fetch("/api/nightlife")
-      .then(response => response.ok
-        ? response.json() as Promise<{ events?: Array<{ title: string; when: string; venue: string; note: string; href: string }> }>
-        : Promise.reject())
-      .then(data => {
-        if (!Array.isArray(data.events)) throw new Error("Invalid nightlife response");
-        const currentEvents = data.events;
-        setEvents(currentEvents);
-        setStatus(currentEvents.length ? "live" : "empty");
-      })
-      .catch(() => {
-        setEvents([]);
-        setStatus("unavailable");
-      });
+    void loadNightlife().then(result => {
+      setEvents(result.events);
+      setStatus(result.status);
+    });
   }, []);
 
   const emptyMessage = status === "loading"
