@@ -391,13 +391,13 @@ test("serves sitemap and robots metadata routes and keeps Game out", async () =>
   assert.match(robots, /Sitemap: https:\/\/www\.thefileswithdub\.com\/sitemap\.xml/);
 });
 
-test("keeps parked newsletter and podcast launches clearly inactive on the links hub", async () => {
+test("reports link-hub availability without inventing newsletter or podcast destinations", async () => {
   const response = await render("/links");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Launch is parked; sign-ups are not active/);
-  assert.match(html, /Launch is deferred; no public episodes are available/);
-  assert.doesNotMatch(html, /Coming Oct 21|October 21|coming soon/i);
+  assert.match(html, /No public podcast episodes are available/);
+  assert.doesNotMatch(html, /Coming Oct 21|October 21|coming soon|Launch is deferred/i);
 });
 
 test("keeps newsletter and policy language truthful while making the player responsive", async () => {

@@ -35,7 +35,7 @@ const rows: LinkRow[] = [
     : [{ label: "The Files — newsletter", sub: "Launch is parked; sign-ups are not active.", placeholder: "Not active" } as LinkRow]),
   ...(PODCAST_URL
     ? [{ label: "Podcast", sub: "Full episodes, RSS", href: `${PODCAST_URL}${utm}` } as LinkRow]
-    : [{ label: "Podcast", sub: "Launch is deferred; no public episodes are available.", placeholder: "Not active" } as LinkRow]),
+    : [{ label: "Podcast", sub: "No public podcast episodes are available.", placeholder: "Not active" } as LinkRow]),
   { label: "Patreon", sub: "Support the show", href: PATREON },
   { label: "Instagram", sub: "@dubwiththefiles", href: INSTAGRAM },
   { label: "X", sub: "@TheFilesWithDUB", href: X },
