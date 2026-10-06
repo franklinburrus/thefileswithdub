@@ -146,7 +146,35 @@ export default function FilesPlatform({ page }: { page: Page }) {
 }
 
 function SectionTitle({ overline, title, copy, heading = "h2" }: { overline: string; title: React.ReactNode; copy: string; heading?: "h1" | "h2" }) { const Heading = heading; return <div className="section-title"><div><p className="kicker">{overline}</p><Heading className="section-heading">{title}</Heading></div><p>{copy}</p></div>; }
-function NightlifeCalendar() { const [events, setEvents] = useState<Array<{ title: string; when: string; venue: string; note: string; href: string }>>([]); const [loaded, setLoaded] = useState(false); useEffect(() => { fetch("/api/nightlife").then(response => response.ok ? response.json() as Promise<{ events?: Array<{ title: string; when: string; venue: string; note: string; href: string }> }> : Promise.reject()).then(data => setEvents(data.events ?? [])).catch(() => setEvents([])).finally(() => setLoaded(true)); }, []); return <div className="nightlife-calendar"><div className="nightlife-heading"><p className="kicker">ON THE CALENDAR</p><p>Fresh listings from Eventbrite’s New York nightlife page.</p></div>{events.length ? <div className="nightlife-list">{events.map(event => <a href={event.href} target="_blank" rel="noreferrer" key={event.href}><div><span>{event.when}</span><h3>{event.title}</h3><p>{event.venue}</p></div><b>{event.note} <i>↗</i></b></a>)}</div> : <p className="calendar-empty">{loaded ? "The live listings are being refreshed. Browse the full current calendar on Eventbrite." : "Loading the current New York nightlife listings…"}</p>}<a className="outline nightlife-more" href="https://www.eventbrite.com/b/ny--new-york/nightlife/" target="_blank" rel="noreferrer">See more NYC nightlife ↗</a></div>; }
+function NightlifeCalendar() {
+  const [events, setEvents] = useState<Array<{ title: string; when: string; venue: string; note: string; href: string }>>([]);
+  const [status, setStatus] = useState<"loading" | "live" | "empty" | "unavailable">("loading");
+
+  useEffect(() => {
+    fetch("/api/nightlife")
+      .then(response => response.ok
+        ? response.json() as Promise<{ events?: Array<{ title: string; when: string; venue: string; note: string; href: string }> }>
+        : Promise.reject())
+      .then(data => {
+        if (!Array.isArray(data.events)) throw new Error("Invalid nightlife response");
+        const currentEvents = data.events;
+        setEvents(currentEvents);
+        setStatus(currentEvents.length ? "live" : "empty");
+      })
+      .catch(() => {
+        setEvents([]);
+        setStatus("unavailable");
+      });
+  }, []);
+
+  const emptyMessage = status === "loading"
+    ? "Loading the current New York nightlife listings…"
+    : status === "empty"
+      ? "No upcoming listings are currently available. Browse Eventbrite for the full current calendar."
+      : "Current listings are unavailable. Try again later or browse Eventbrite for the full current calendar.";
+
+  return <div className="nightlife-calendar"><div className="nightlife-heading"><p className="kicker">ON THE CALENDAR</p><p>Fresh listings from Eventbrite’s New York nightlife page.</p></div>{status === "live" ? <div className="nightlife-list">{events.map(event => <a href={event.href} target="_blank" rel="noreferrer" key={event.href}><div><span>{event.when}</span><h3>{event.title}</h3><p>{event.venue}</p></div><b>{event.note} <i>↗</i></b></a>)}</div> : <p className="calendar-empty" role="status" aria-live="polite">{emptyMessage}</p>}<a className="outline nightlife-more" href="https://www.eventbrite.com/b/ny--new-york/nightlife/" target="_blank" rel="noreferrer">See more NYC nightlife ↗</a></div>;
+}
 function ApplePlaylist() { return <aside className="apple-playlist"><p className="kicker">NOW PLAYING</p><h3>Top 25<br /><em>New York City.</em></h3><p>Play the playlist right here. Apple Music may request sign-in for full-track playback.</p><iframe src="https://embed.music.apple.com/us/playlist/top-25-new-york-city/pl.a88b5c26caea48a59484370b6f79c9df" title="Top 25 New York City playlist on Apple Music" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" loading="lazy" /></aside>; }
 function MediaGrid({ items, onSelect }: { items: MediaItem[]; onSelect: (item: MediaItem) => void }) { return <div className="media-grid">{items.map(item => <button className="media-card" key={item.id} onClick={() => onSelect(item)} aria-label={`Play ${item.title}`}><div><img src={item.image} alt={`Thumbnail for ${item.title}`} width="480" height="360" loading="lazy" decoding="async" /><span>▶</span><small>THE FILES / YOUTUBE</small></div><p>{item.date} · {item.runtime}</p><h3>{item.title}</h3><b>Play clip ↗</b></button>)}</div>; }
 function Newsletter() { return <section className="newsletter" aria-labelledby="dispatch-title"><div><p className="kicker">THE DISPATCH</p><h2 id="dispatch-title">Stay in<br /><em>the files.</em></h2><p>Get the latest interviews, releases, events, and studio updates.</p></div><NewsletterSignup /></section>; }

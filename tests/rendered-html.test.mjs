@@ -265,6 +265,12 @@ test("keeps Outside current and balances the Apple Music panel with the calendar
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/start-here.css", import.meta.url), "utf8");
   assert.match(page, /Loading the current New York nightlife listings/i);
+  assert.match(page, /Array\.isArray\(data\.events\)/);
+  assert.match(page, /setStatus\(currentEvents\.length \? "live" : "empty"\)/);
+  assert.match(page, /setStatus\("unavailable"\)/);
+  assert.match(page, /No upcoming listings are currently available/i);
+  assert.match(page, /Current listings are unavailable/i);
+  assert.match(page, /role="status" aria-live="polite"/);
   assert.match(page, /useState<Array<\{ title: string; when: string; venue: string; note: string; href: string \}>>\(\[\]\)/i);
   assert.match(styles, /\.live-files-grid\{align-items:stretch\}/i);
   assert.match(styles, /\.nightlife-calendar,\.apple-playlist\{height:100%;display:flex;flex-direction:column\}/i);
@@ -364,6 +370,15 @@ test("serves sitemap and robots metadata routes and keeps Game out", async () =>
   assert.match(robots, /Disallow: \/api\//);
   assert.match(robots, /Disallow: \/game/);
   assert.match(robots, /Sitemap: https:\/\/www\.thefileswithdub\.com\/sitemap\.xml/);
+});
+
+test("keeps parked newsletter and podcast launches clearly inactive on the links hub", async () => {
+  const response = await render("/links");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Launch is parked; sign-ups are not active/);
+  assert.match(html, /Launch is deferred; no public episodes are available/);
+  assert.doesNotMatch(html, /Coming Oct 21|October 21|coming soon/i);
 });
 
 test("keeps newsletter and policy language truthful while making the player responsive", async () => {

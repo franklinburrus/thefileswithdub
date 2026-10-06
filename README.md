@@ -45,8 +45,9 @@ limits. The replay proxy accepts only HTTPS HLS URLs on the approved
 The default Wrangler configuration is intentionally unrouted. Use
 `npx @vinext/cloudflare deploy --preview` for QA. A production cutover must
 explicitly use `--env production` after the preview and infrastructure checks
-pass. Cloudflare account-level WAF, rate limiting, and zone security settings
-remain managed outside this repository.
+pass and receive Frank's production approval. Cloudflare account-level WAF,
+rate limiting, and zone security settings remain managed outside this
+repository.
 
 ### Forms and privacy gate
 
@@ -65,11 +66,23 @@ configuration under `dist/server`. If a direct Wrangler deploy is needed after
 that build, use `npx wrangler deploy --config dist/server/wrangler.json` so the
 generated Worker entry is uploaded rather than the source-only wrapper.
 
+### Production rollback
+
+Before a production cutover, record the currently assigned production version
+from `npx wrangler deployments list --name thefileswithdub --env production
+--json`. A rollback is a production change and requires explicit approval. To
+restore the recorded prior version, run
+`npx wrangler rollback <prior-version-id> --name thefileswithdub --env
+production --config wrangler.jsonc`, then read the deployment list again and
+repeat the production route and feature smoke checks. Keep the prior version ID
+with the release record; do not substitute a preview-only version.
+
 ## Verify locally
 
 ```bash
 npm run verify
 ```
 
-Source snapshot: `3646ec97c3afca82cf809ec63341ee0837a3a67c`; the current repair
-history is tracked in Git on `main`.
+The deployed Worker version and the source commit are separate identifiers.
+Record both from the release commit and Cloudflare production readback; a
+successful build or preview is not evidence that production changed.
