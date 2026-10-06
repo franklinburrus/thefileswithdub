@@ -143,6 +143,10 @@ test("redirects external HTTP requests to HTTPS at the Worker boundary", async (
     assert.equal(retired.status, 404, path);
     assert.match(retired.headers.get("content-type") ?? "", /text\/plain/);
   }
+
+  const unknown = await worker.fetch(new Request("https://www.thefileswithdub.com/unmatched-release-check"), env, { waitUntil() {}, passThroughOnException() {} });
+  assert.equal(unknown.status, 404);
+  assert.match(unknown.headers.get("content-type") ?? "", /text\/html/);
 });
 
 test("retires the Game route and every source entry point", async () => {
