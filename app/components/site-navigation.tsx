@@ -33,7 +33,7 @@ export default function SiteNavigation() {
   return <>
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="site-header standalone-header">
-    <Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-globe-logo.png" alt="The Files With Dub" width={96} height={96} priority /></Link>
+    <Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-globe-logo-256-v1.webp" alt="The Files With Dub" width={96} height={96} priority unoptimized /></Link>
     <nav className={menu ? "nav-open" : ""} aria-label="Primary navigation">
       {links.map(([label, href]) => <Link href={href} key={href} onClick={() => setMenu(false)}>{label}</Link>)}
     </nav>

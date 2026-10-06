@@ -55,11 +55,12 @@ export default function LinksPage() {
     <main id="main-content" className="panel light" style={{ minHeight: "100svh" }}>
       <div className="center" style={{ maxWidth: "560px", margin: "0 auto" }}>
         <Image
-          src="/files-with-dub-globe-logo.png"
+          src="/files-with-dub-globe-logo-256-v1.webp"
           alt="The Files With Dub"
           width={112}
           height={112}
           priority
+          unoptimized
           style={{ borderRadius: "50%", marginBottom: "18px" }}
         />
         <p className="kicker">THE FILES WITH DUB</p>
