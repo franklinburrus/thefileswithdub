@@ -6,7 +6,6 @@ Cloudflare Workers source for The Files With Dub, reconstructed from the verifie
 
 - Website pages, styles, components, API routes, and static media
 - Worker configuration with an asset binding
-- Route and source-retirement checks, including `/game` returning 404
 
 ## What is not included
 
