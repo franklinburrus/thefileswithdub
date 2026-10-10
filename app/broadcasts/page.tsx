@@ -4,22 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import HlsVideo from "../components/hls-video";
+import { useBroadcastReplays } from "../components/use-broadcast-replays";
 import SiteNavigation from "../components/site-navigation";
-import { xBroadcasts, displayTitleFor, type XBroadcastReplay } from "../lib/x-broadcasts";
+import { xBroadcasts, displayTitleFor } from "../lib/x-broadcasts";
 import { SITE_URL, safeJsonLd } from "../seo";
 
 export default function Broadcasts() {
-  const [broadcasts, setBroadcasts] = useState<XBroadcastReplay[]>(
-    xBroadcasts.map(broadcast => ({ ...broadcast, hlsUrl: null })),
-  );
-  const [selectedId, setSelectedId] = useState(xBroadcasts[0].id);
-  const [archiveStatus, setArchiveStatus] = useState<"loading" | "ready" | "unavailable">("loading");
+  const { broadcasts, archiveStatus } = useBroadcastReplays();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const viewerRef = useRef<HTMLElement>(null);
   const openingReplay = useRef(false);
-  const selected = broadcasts.find(broadcast => broadcast.id === selectedId) ?? broadcasts[0];
+  const selected = broadcasts.find(broadcast => broadcast.id === selectedId) ?? broadcasts[1] ?? broadcasts[0]
+    ?? (archiveStatus === "loading" ? { ...(xBroadcasts[1] ?? xBroadcasts[0]), hlsUrl: null } : undefined);
 
   function openReplay(id: string) {
-    if (id === selectedId) {
+    if (id === selected?.id) {
       revealPlayer();
     } else {
       openingReplay.current = true;
@@ -39,27 +38,6 @@ export default function Broadcasts() {
     openingReplay.current = false;
     revealPlayer();
   }, [selectedId]);
-
-  useEffect(() => {
-    fetch("/api/x-broadcasts")
-      .then(response => response.ok ? response.json() as Promise<{ broadcasts?: XBroadcastReplay[] }> : Promise.reject())
-      .then(data => {
-        if (!Array.isArray(data.broadcasts)) throw new Error("No replay sources");
-        // The API/edge cache may still hold a previous release's metadata.
-        // Keep this release's verified titles, sources and cover URLs; only
-        // replay availability is supplied by the durable catalog response.
-        const replayUrls = new Map(data.broadcasts.map(broadcast => [broadcast.id, broadcast.hlsUrl]));
-        setBroadcasts(xBroadcasts.flatMap(broadcast => {
-          const hlsUrl = broadcast.sourceUrl ? replayUrls.get(broadcast.id) ?? null : null;
-          return hlsUrl ? [{ ...broadcast, hlsUrl }] : [];
-        }));
-        setArchiveStatus("ready");
-      })
-      .catch(() => {
-        setBroadcasts([]);
-        setArchiveStatus("unavailable");
-      });
-  }, []);
 
   const archiveStructuredData = {
     "@context": "https://schema.org",

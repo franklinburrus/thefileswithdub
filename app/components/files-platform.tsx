@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -65,7 +65,7 @@ const consultingServices = [
   ["Media strategy session", "A focused creative rhythm for creators, shows, artists, and brands."],
 ] as const;
 
-export default function FilesPlatform({ page }: { page: Page }) {
+export default function FilesPlatform({ page, homeBroadcast }: { page: Page; homeBroadcast?: ReactNode }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [media, setMedia] = useState<MediaItem[]>(fallbackMedia);
@@ -118,6 +118,7 @@ export default function FilesPlatform({ page }: { page: Page }) {
 
     {page === "home" && <>
       <section className="hero"><div className="hero-copy"><p className="kicker">INDEPENDENT MEDIA / QUEENS, NY</p><h1>THE CULTURE<br /><em>KEEPS RECEIPTS.</em></h1><p>Every clip, conversation, studio craft, and moment worth filing — all under one roof.</p><div className="button-row"><button className="outline" onClick={() => go("studio")}>Book the studio</button></div></div><div className="hero-art"><img src="/dub-mark.svg" alt="The Files With Dub brand mark" width="1200" height="720" fetchPriority="high" /><div className="file-stamp">THE FILES<br />WITH DUB<br /><b>001</b></div></div></section>
+      {homeBroadcast}
       <section className="panel light"><SectionTitle overline="LATEST FROM DUB" title={<>Open the <em>files.</em></>} copy="One source-aware feed for every clip published through The Files With Dub." /><MediaGrid items={media.slice(0, 3)} onSelect={setSelected} /><div className="center"><button className="solid" onClick={() => go("library")}>View every clip ↗</button></div></section>
       <section className="panel split dark"><div><p className="kicker">THE BUSINESS OF THE FILES</p><h2>One platform.<br /><em>Two ways in.</em></h2></div><div className="path-grid"><button onClick={() => go("studio")}><b>01</b><h3>Book studio time</h3><p>Explore the studio session options before booking through the official calendar.</p><span>Explore studio ↗</span></button><button onClick={() => go("consulting")}><b>02</b><h3>Build a media plan</h3><p>Choose a consulting lane and book the working session that fits your goals.</p><span>Explore consulting ↗</span></button></div></section>
       <Newsletter />

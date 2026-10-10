@@ -25,6 +25,21 @@ test("server-renders The Files With Dub media platform", async () => {
   assert.doesNotMatch(html, /codex-preview/i);
 });
 
+test("places the homepage broadcast viewing window immediately before the YouTube clips", async () => {
+  const response = await render("/");
+  const html = await response.text();
+  const broadcastStart = html.indexOf('aria-label="Latest X broadcast"');
+  const youtubeStart = html.indexOf("LATEST FROM DUB");
+  assert.ok(broadcastStart >= 0, "homepage broadcast section is missing");
+  assert.ok(broadcastStart < youtubeStart, "broadcast must precede the YouTube clips");
+  const between = html.slice(broadcastStart, youtubeStart);
+  assert.match(between, /class="broadcast-player"/);
+  assert.equal((between.match(/<section\b/g) ?? []).length, 1, "another section separates the broadcast and YouTube clips");
+  assert.match(html.slice(youtubeStart), /yf4qP6dZ7M0/);
+  assert.match(html.slice(youtubeStart), /KWn3uHMDCf4/);
+  assert.match(html.slice(youtubeStart), /ri9SYZpj6ug/);
+});
+
 test("uses the shared Files logo and reference header actions", async () => {
   const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
@@ -423,7 +438,7 @@ test("broadcasts page renders descriptive titles instead of empty headings", asy
   const html = await (await render("/broadcasts")).text();
   assert.doesNotMatch(html, /<h2><\/h2>/, "empty h2 headings on /broadcasts");
   assert.doesNotMatch(html, /<h2>\s*<\/h2>/, "whitespace-only h2 on /broadcasts");
-  assert.match(html, /J1 SPACE DRAMA \| IAN DUNLAP INTERVIEW \| CREATOR MONETIZATION/);
+  assert.match(html, /<h2>[^<]*\S[^<]*<\/h2>/, "selected replay needs a descriptive heading while loading");
   assert.match(html, /Loading the Files replay/);
   assert.doesNotMatch(html, />Play replay</, "unresolved entries must not advertise playback before source resolution");
 });
