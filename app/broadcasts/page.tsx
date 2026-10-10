@@ -20,7 +20,14 @@ export default function Broadcasts() {
       .then(response => response.ok ? response.json() as Promise<{ broadcasts?: XBroadcastReplay[] }> : Promise.reject())
       .then(data => {
         if (!data.broadcasts?.length) throw new Error("No replay sources");
-        setBroadcasts(data.broadcasts);
+        // The API/edge cache may still hold a previous release's metadata.
+        // Keep this release's verified titles, sources and cover URLs; only
+        // replay availability is supplied by the durable catalog response.
+        const replayUrls = new Map(data.broadcasts.map(broadcast => [broadcast.id, broadcast.hlsUrl]));
+        setBroadcasts(xBroadcasts.map(broadcast => ({
+          ...broadcast,
+          hlsUrl: broadcast.sourceUrl ? replayUrls.get(broadcast.id) ?? null : null,
+        })));
         setArchiveStatus("ready");
       })
       .catch(() => {
