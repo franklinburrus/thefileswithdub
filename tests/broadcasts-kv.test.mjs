@@ -68,7 +68,7 @@ test("serves the broadcasts catalog from KV without fetching x.com", async (t) =
   const instance = await worker();
   const m3u8 = "https://video.twimg.com/periscope-replay/v1/replay123.m3u8?token=abc";
   const { calls, binding } = fakeKv({
-    [KV_KEY]: catalogOf({ "1DxLdZjlmrQxm": m3u8, "1DxLdZjQNOaxm": null }),
+    [KV_KEY]: catalogOf({ "1DxLdZjlmrQxm": m3u8, "1DxLdZjQNOaxm": null, "video-broadcast-2026-08-15-01": m3u8 }),
   });
   const exec = execution();
 
@@ -91,6 +91,7 @@ test("serves the broadcasts catalog from KV without fetching x.com", async (t) =
   assert.equal(entry.hlsUrl, `/api/x-media?url=${encodeURIComponent(m3u8)}`);
   const nulled = body.broadcasts.find((b) => b.id === "1DxLdZjQNOaxm");
   assert.equal(nulled?.hlsUrl, null);
+  assert.equal(body.broadcasts.find((b) => b.id === "video-broadcast-2026-08-15-01")?.hlsUrl, null, "unverified local identities never expose cached media as available");
   assert.equal(calls.gets.length, 1, "exactly one KV read per request");
 });
 
@@ -111,7 +112,9 @@ test("falls back to live resolution when KV is empty, then populates KV", async 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("X-Broadcasts-Source"), "origin");
   const body = await response.json();
-  assert.ok(body.broadcasts.every((b) => b.hlsUrl === `/api/x-media?url=${encodeURIComponent(m3u8)}`));
+  assert.ok(body.broadcasts.every((b) => b.sourceUrl
+    ? b.hlsUrl === `/api/x-media?url=${encodeURIComponent(m3u8)}`
+    : b.hlsUrl === null));
 
   await exec.settle();
   assert.equal(calls.puts.length, 1, "lazy KV population after a live resolution");
@@ -176,8 +179,12 @@ test("scheduled refresh resolves every broadcast and rewrites the KV catalog", a
   const exec = execution();
 
   const m3u8 = "https://video.pscp.tv/periscope-replay/v1/cron.m3u8?type=replay";
+  const requested = [];
   t.after(() => { fetchHandler = defaultFetchHandler; });
-  fetchHandler = async () => new Response(X_HTML(m3u8), { status: 200 });
+  fetchHandler = async (input) => {
+    requested.push(String(input));
+    return new Response(X_HTML(m3u8), { status: 200 });
+  };
 
   await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
   await exec.settle();
@@ -188,7 +195,9 @@ test("scheduled refresh resolves every broadcast and rewrites the KV catalog", a
   const stored = JSON.parse(value);
   const ids = Object.keys(stored.urls);
   assert.ok(ids.length > 40, `expected the full catalog, got ${ids.length} entries`);
-  assert.ok(ids.every((id) => stored.urls[id] === m3u8));
+  assert.ok(ids.every((id) => /^[A-Za-z0-9]{13}$/.test(id) ? stored.urls[id] === m3u8 : stored.urls[id] === null));
+  assert.ok(requested.includes("https://x.com/i/spaces/1DxLdZjQNOaxm"));
+  assert.ok(!requested.some((url) => /video-broadcast-|audio-space-/.test(url)));
 });
 
 test("scheduled refresh over hostile HTML persists only https URLs or null", async (t) => {
@@ -232,9 +241,11 @@ test("scheduled refresh with a fresh catalog only resolves missing broadcasts", 
   assert.ok(ids.length > 40, `expected the full catalog, got ${ids.length} entries`);
 
   // Re-seed KV with a FRESH catalog that is missing two broadcasts.
-  const dropped = ids.slice(0, 2);
+  const dropped = ids.filter((id) => full.urls[id] !== null).slice(0, 2);
   const partial = {};
-  for (const id of ids.slice(2)) partial[id] = full.urls[id];
+  for (const id of ids) {
+    if (!dropped.includes(id)) partial[id] = full.urls[id];
+  }
   await binding.put(KV_KEY, catalogOf(partial));
   calls.puts.length = 0;
 
@@ -272,6 +283,52 @@ test("scheduled refresh fully re-resolves a stale catalog", async (t) => {
 
   const stored = JSON.parse(calls.puts.at(-1)[1]);
   assert.equal(stored.urls["1DxLdZjlmrQxm"], newUrl, "stale catalog gets a full re-resolution");
+});
+
+test("fresh refresh retries null sources without refetching good URLs or renewing full-resolution age", async (t) => {
+  const instance = await worker();
+  const good = "https://video.pscp.tv/periscope-replay/v1/good.m3u8";
+  const recovered = "https://video.pscp.tv/periscope-replay/v1/recovered.m3u8";
+  const { calls, binding } = fakeKv();
+  const exec = execution();
+  t.after(() => { fetchHandler = defaultFetchHandler; });
+  fetchHandler = async () => new Response(X_HTML(good));
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+  const seeded = JSON.parse(calls.puts.at(-1)[1]);
+  const fullResolvedAt = Date.now() - 60_000;
+  seeded.resolvedAt = fullResolvedAt;
+  seeded.urls["1DxLdZjlmrQxm"] = null;
+  await binding.put(KV_KEY, JSON.stringify(seeded));
+  const requests = [];
+  fetchHandler = async (input) => {
+    requests.push(String(input));
+    return new Response(X_HTML(recovered));
+  };
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+  const refreshed = JSON.parse(calls.puts.at(-1)[1]);
+  assert.deepEqual(requests, ["https://x.com/i/broadcasts/1DxLdZjlmrQxm"]);
+  assert.equal(refreshed.urls["1DxLdZjlmrQxm"], recovered);
+  assert.equal(refreshed.urls["1NGaroPyqNnJj"], good);
+  assert.equal(refreshed.resolvedAt, fullResolvedAt);
+});
+
+test("a no-op incremental refresh preserves the full-resolution timestamp", async (t) => {
+  const instance = await worker();
+  const { calls, binding } = fakeKv();
+  const exec = execution();
+  t.after(() => { fetchHandler = defaultFetchHandler; });
+  fetchHandler = async () => new Response(X_HTML("https://video.pscp.tv/periscope-replay/v1/good.m3u8"));
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+  const seeded = JSON.parse(calls.puts.at(-1)[1]);
+  seeded.resolvedAt = Date.now() - 60_000;
+  await binding.put(KV_KEY, JSON.stringify(seeded));
+  fetchHandler = async () => { assert.fail("known good sources must not be refetched"); };
+  await instance.scheduled({ cron: "*/10 * * * *" }, baseEnv(binding), exec.ctx);
+  await exec.settle();
+  assert.equal(JSON.parse(calls.puts.at(-1)[1]).resolvedAt, seeded.resolvedAt);
 });
 
 test("cold resolution fans out at 32 concurrent upstream fetches", async (t) => {

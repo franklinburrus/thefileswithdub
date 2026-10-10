@@ -13,7 +13,6 @@ const links = [
   ["Studio", "/studio"],
   ["Consulting", "/consulting"],
   ["Spill", "/spill"],
-  ["Shop", "/affiliate"],
   ["Contact", "/contact"],
   ["About", "/about"],
 ] as const;
@@ -37,7 +36,7 @@ export default function SiteNavigation() {
     <nav className={menu ? "nav-open" : ""} aria-label="Primary navigation">
       {links.map(([label, href]) => <Link href={href} key={href} onClick={() => setMenu(false)}>{label}</Link>)}
     </nav>
-    <div className="header-actions"><a className="shop-link header-button" href="https://9p7whp-1k.myshopify.com" target="_blank" rel="noreferrer" aria-label="Open the Files store"><span>Store</span><span className="action-arrow" aria-hidden="true">↗</span></a><Link className="book-button header-button" href="/studio" aria-label="Book the studio"><span>Book the studio</span><span className="action-arrow" aria-hidden="true">↗</span></Link><button className="menu-button" onClick={() => setMenu(!menu)} aria-label={menu ? "Close navigation" : "Open navigation"} aria-expanded={menu}>☰</button></div>
+    <div className="header-actions"><Link className="book-button header-button" href="/studio" aria-label="Book the studio"><span>Book the studio</span><span className="action-arrow" aria-hidden="true">↗</span></Link><button className="menu-button" onClick={() => setMenu(!menu)} aria-label={menu ? "Close navigation" : "Open navigation"} aria-expanded={menu}>☰</button></div>
     </header>
   </>;
 }

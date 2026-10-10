@@ -91,15 +91,18 @@ export function sourceUrlFromProxyUrl(proxyUrl: string): string | null {
 export function mergeCatalog(catalog: HlsCatalog): { broadcasts: XBroadcastReplay[] } {
   return {
     broadcasts: xBroadcasts.map((broadcast) => {
-      const source = catalog.urls[broadcast.id] ?? null;
+      // Archive-only entries have no verified replay identity. Never expose
+      // a legacy/fallback-key URL as though it were an available replay.
+      const source = broadcast.sourceUrl ? catalog.urls[broadcast.id] ?? null : null;
       return { ...broadcast, hlsUrl: source ? toProxyUrl(source) : null };
     }),
   };
 }
 
 async function resolveOne(broadcast: XBroadcast): Promise<[string, string | null]> {
+  if (!broadcast.sourceUrl) return [broadcast.id, null];
   try {
-    const response = await fetchWithTimeout(`https://x.com/i/broadcasts/${broadcast.id}`, {
+    const response = await fetchWithTimeout(broadcast.sourceUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; TheFilesWithDub/1.0)",
       },
@@ -115,20 +118,22 @@ async function resolveOne(broadcast: XBroadcast): Promise<[string, string | null
 /**
  * Resolve every broadcast's replay HLS URL (the expensive fan-out).
  *
- * When `existing` is provided, only broadcasts missing from its URL map are
- * fetched — replay URLs are long-lived, so a refresh that already knows 54
- * of 56 broadcasts does 2 fetches instead of 56. Known entries (including
- * nulls) are carried over untouched; resolvedAt always reflects this run.
+ * Incremental refreshes retry missing/failed sources and preserve good URLs.
+ * resolvedAt records the last FULL resolution; incremental or no-op refreshes
+ * must not postpone the Worker's six-hour full refresh indefinitely.
  */
 export async function resolveCatalog(existing?: HlsCatalog): Promise<HlsCatalog> {
   const known = existing?.urls ?? {};
-  const pending = xBroadcasts.filter((broadcast) => !Object.hasOwn(known, broadcast.id));
+  const pending = xBroadcasts.filter((broadcast) => broadcast.sourceUrl && (!Object.hasOwn(known, broadcast.id) || known[broadcast.id] === null));
   const urls: Record<string, string | null> = { ...known };
+  for (const broadcast of xBroadcasts) {
+    if (!broadcast.sourceUrl) urls[broadcast.id] = null;
+  }
   for (let i = 0; i < pending.length; i += FETCH_CONCURRENCY) {
     const chunk = await Promise.all(pending.slice(i, i + FETCH_CONCURRENCY).map(resolveOne));
     for (const [id, url] of chunk) urls[id] = url;
   }
-  return { resolvedAt: Date.now(), urls };
+  return { resolvedAt: existing?.resolvedAt ?? Date.now(), urls };
 }
 
 /**
