@@ -207,7 +207,7 @@ test("publishes a full-size X broadcast replay view with the official X player",
   const posters = [...catalog.matchAll(/poster: "([^"]+)"/g)].map(m => m[1]);
   assert.equal(posters.length, ids.length);
   for (const poster of posters) {
-    assert.match(poster, /^\/broadcasts\/([^/]+\.(png|jpg)|placeholder\.svg)$/, `broken poster path ${poster}`);
+    assert.match(poster, /^\/broadcasts\/([^/]+\.(png|jpg)|replay-card\.svg)$/, `broken poster path ${poster}`);
   }
   assert.match(page, /<HlsVideo/);
   assert.match(player, /<video ref=\{videoRef\} controls playsInline preload="metadata"/);
@@ -426,6 +426,22 @@ test("broadcasts page renders descriptive titles instead of empty headings", asy
   assert.match(html, /J1 SPACE DRAMA \| IAN DUNLAP INTERVIEW \| CREATOR MONETIZATION/);
   assert.match(html, /Checking replay/);
   assert.doesNotMatch(html, />Play replay</, "unresolved entries must not advertise playback before source resolution");
+});
+
+test("broadcast replay covers use neutral branding and retain custom artwork", async () => {
+  const catalog = await readFile(new URL("../app/lib/x-broadcasts.ts", import.meta.url), "utf8");
+  const fallback = await readFile(new URL("../public/broadcasts/replay-card.svg", import.meta.url), "utf8");
+  const sync = await readFile(new URL("../scripts/broadcasts-sync.mjs", import.meta.url), "utf8");
+  const html = await (await render("/broadcasts")).text();
+  assert.doesNotMatch(catalog, /\/broadcasts\/placeholder\.svg/);
+  assert.equal([...catalog.matchAll(/poster: "\/broadcasts\/replay-card\.svg"/g)].length, 46);
+  assert.equal([...catalog.matchAll(/poster: "\/broadcasts\/[^\"]+\.(?:png|jpg)"/g)].length, 10);
+  assert.match(fallback, /X REPLAY ARCHIVE/);
+  assert.doesNotMatch(fallback, /coming soon|placeholder|unfinished|play replay/i);
+  assert.match(sync, /\/broadcasts\/replay-card\.svg/);
+  assert.match(html, /\/broadcasts\/replay-card\.svg/);
+  assert.doesNotMatch(html, /\/broadcasts\/placeholder\.svg/);
+  assert.match(html, /\/broadcasts\/1AKEmmrYnnnKL\.png/);
 });
 
 test("broadcasts layout ships ItemList + VideoObject structured data", async () => {

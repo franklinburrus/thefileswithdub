@@ -43,7 +43,7 @@ export default function Broadcasts() {
       </div>
       {archiveStatus === "loading"
         ? <div className="broadcast-player"><Image src={selected.poster} alt={displayTitleFor(selected)} fill priority sizes="(max-width: 760px) 100vw, 82vw" unoptimized /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
-        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={displayTitleFor(selected)} />}
+        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={displayTitleFor(selected)} sourceVerified={!!selected.sourceUrl} />}
     </section>
     {archiveStatus !== "loading" && !selected.hlsUrl && selected.sourceUrl && <p><a className="outline" href={selected.sourceUrl} target="_blank" rel="noreferrer">Check the original on X ↗</a></p>}
     <div className="broadcast-list">
