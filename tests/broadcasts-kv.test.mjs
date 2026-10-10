@@ -241,9 +241,11 @@ test("scheduled refresh with a fresh catalog only resolves missing broadcasts", 
   assert.ok(ids.length > 40, `expected the full catalog, got ${ids.length} entries`);
 
   // Re-seed KV with a FRESH catalog that is missing two broadcasts.
-  const dropped = ids.slice(0, 2);
+  const dropped = ids.filter((id) => full.urls[id] !== null).slice(0, 2);
   const partial = {};
-  for (const id of ids.slice(2)) partial[id] = full.urls[id];
+  for (const id of ids) {
+    if (!dropped.includes(id)) partial[id] = full.urls[id];
+  }
   await binding.put(KV_KEY, catalogOf(partial));
   calls.puts.length = 0;
 
