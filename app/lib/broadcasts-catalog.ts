@@ -124,8 +124,11 @@ async function resolveOne(broadcast: XBroadcast): Promise<[string, string | null
  */
 export async function resolveCatalog(existing?: HlsCatalog): Promise<HlsCatalog> {
   const known = existing?.urls ?? {};
-  const pending = xBroadcasts.filter((broadcast) => !Object.hasOwn(known, broadcast.id) || known[broadcast.id] === null);
+  const pending = xBroadcasts.filter((broadcast) => broadcast.sourceUrl && (!Object.hasOwn(known, broadcast.id) || known[broadcast.id] === null));
   const urls: Record<string, string | null> = { ...known };
+  for (const broadcast of xBroadcasts) {
+    if (!broadcast.sourceUrl) urls[broadcast.id] = null;
+  }
   for (let i = 0; i < pending.length; i += FETCH_CONCURRENCY) {
     const chunk = await Promise.all(pending.slice(i, i + FETCH_CONCURRENCY).map(resolveOne));
     for (const [id, url] of chunk) urls[id] = url;

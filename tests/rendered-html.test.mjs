@@ -423,8 +423,9 @@ test("broadcasts page renders descriptive titles instead of empty headings", asy
   const html = await (await render("/broadcasts")).text();
   assert.doesNotMatch(html, /<h2><\/h2>/, "empty h2 headings on /broadcasts");
   assert.doesNotMatch(html, /<h2>\s*<\/h2>/, "whitespace-only h2 on /broadcasts");
-  // 46+ episodes still lack sheet titles: they must show a factual date label.
-  assert.match(html, /X Broadcast — [A-Z][a-z]+ \d{1,2}, \d{4}/);
+  assert.match(html, /J1 SPACE DRAMA \| IAN DUNLAP INTERVIEW \| CREATOR MONETIZATION/);
+  assert.match(html, /Checking replay/);
+  assert.doesNotMatch(html, />Play replay</, "unresolved entries must not advertise playback before source resolution");
 });
 
 test("broadcasts layout ships ItemList + VideoObject structured data", async () => {
