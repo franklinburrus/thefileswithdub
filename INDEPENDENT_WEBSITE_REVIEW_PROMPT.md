@@ -1,38 +1,30 @@
-# Independent Review: The Files With Dub website
+# Approved website release checklist — 2026-10-06
 
-Review the live website at https://www.thefileswithdub.com independently. Do not rely on prior migration notes or implementation claims.
+This is the single active acceptance checklist. Preserve the current approved design, content, navigation, and routes; do not add or remove scope without Frank’s approval. Release completion requires an identified production version, passing acceptance checks, independent browser QA, production readback, and an actionable rollback.
 
-## Scope
+## Release evidence
 
-Treat the current live site as the review target. The intended product rule is that every public page and feature should work as designed, except that the former Game page is intentionally retired and must return a normal 404.
+- Candidate source: `236e110a154084b7cc9f756a51070cfbfadf1e6e`; PR [#18](https://github.com/franklinburrus/thefileswithdub/pull/18) is open and draft.
+- Candidate preview: Cloudflare Worker version 88, `8902b027-41a3-4ce7-a7f6-15db7f06a785`; build `2d7911b1-8dc4-48f9-9ac6-5bbf25c17fd0` passed. Preview URL: `https://codex-cloudflare-performance-20261006-thefileswithdub.thefileswithdub.workers.dev`.
+- Automated verification for the candidate passed: GitHub run [37519312347](https://github.com/franklinburrus/thefileswithdub/actions/runs/37519312347); `npm run verify` passed 44 tests at this source commit. Lint retains two existing `<img>` warnings; build retains the Vite import/chunk-size warnings.
+- Production readback remains Worker version 82, `8ff2839a-f8a0-4a70-b11a-aa17e033c3d6`, at 100% on deployment `d7444995-5da4-46c4-afd3-983aeaa7db3a` (2026-10-06 13:10 UTC). The candidate is not deployed.
 
-## Review tasks
+## Acceptance matrix
 
-1. Visit the homepage and every reachable internal route. Inventory navigation, footer links, direct-route access, refresh behavior, and browser back/forward behavior.
-2. Test at desktop, tablet, and mobile breakpoints. Record layout defects, overflow, responsive navigation problems, inaccessible controls, and visual regressions.
-3. Verify meaningful interactions rather than only confirming that controls render:
-   - Files search and on-site video playback
-   - X broadcast archive and media playback where safely possible
-   - Patreon, Shopify, Calendly, Amazon, Apple Music, and other external destinations
-   - Newsletter validation only; do not submit a public form or create an account
-   - Outside / nightlife calendar content
-4. Check the console and network panel for unexplained errors, failed assets, broken fonts, or failed required requests.
-5. Confirm `/game` and an arbitrary unknown route return 404, and confirm that no navigation or homepage entry point leads to Game.
-6. Compare visual and functional behavior against the original reference only when available: https://the-files-with-dub.franklinburrus.chatgpt.site. Clearly label observations that cannot be compared.
+| Requirement | Status | Evidence and smallest next action / owner |
+|---|---|---|
+| Preserve and serve `/`, `/files`, `/broadcasts`, `/outside`, `/studio`, `/consulting`, `/spill`, `/contact`, `/about`, `/affiliate`, `/patreon`, `/links`, `/privacy`, `/terms`, `/accessibility`; responsive layout, direct navigation, refresh/history, and keyboard use | **PASS — candidate preview** | All 15 routes were opened at 1440×900, 768×1024, and 390×844 on version 88; each had an H1 and no horizontal overflow. Refresh, back/forward, and skip-link keyboard checks were recorded on the immediately preceding preview; version 88 changes only link-hub wording and its regression assertion. No further implementation is indicated. |
+| Retired `/game` and arbitrary unknown paths return a normal HTTP 404; no public navigation points to Game | **NOT TESTED — current public readback** | Source tests assert `/game`, `/game/`, and descendants return `404 text/plain`, and `/unmatched-release-check` returns `404 text/html`; they also verify no source entry point. The latest preview browser blocked a direct `/game` navigation (`ERR_BLOCKED_BY_CLIENT`); a direct HTTP helper returned 403 for the preview host, including `/links`, and therefore did not verify the app response. Production `/game` has not been read back. Recheck normal HTTP status on the candidate and production when accessible; owner/deploy operator. |
+| Media feed, search, on-site YouTube player, X archive and replay | **PASS — candidate preview** | Version 88 showed 15 live uploads; search “Kino” returned one result and its embedded video played. X listed 56 replays; the selected HLS video reached `readyState=4`, advanced to 30.4 seconds, and was playing. Unavailable source entries are labeled `SOURCE UNAVAILABLE`. |
+| Nightlife, Apple Music, Patreon, Amazon | **PASS with one untested behavior — candidate/target readbacks** | Version 88 loaded 10 Eventbrite events and the Apple Music playlist embed with its track list; full-track playback while signed in was not tested. Read-only provider checks on 2026-10-06 opened the public Patreon page and Amazon storefront. |
+| Shopify storefront destination | **FAIL — owner input required** | Current code points to `https://9p7whp-1k.myshopify.com/`; read-only inspection showed the public starter store “My Store” with placeholder products. Frank: provide the canonical approved live-store URL. No store changes are authorized. |
+| Calendly studio and consulting destinations | **FAIL — owner input required** | Current 1-hour URL is invalid; only the 4-hour studio event was visible in the public account; consulting points to the account root. Frank: provide approved event URLs or the exact intended mapping. No booking or account changes are authorized. |
+| Contact and tip forms match approved behavior without unapproved collection or delivery | **BLOCKED — owner decision and prerequisites** | `FORMS_MODE=disabled`; form tests verify fail-closed behavior. `README.md` requires owner-approved privacy/terms, retention, receiving workflow, and sandbox delivery proof before enabling. Frank: decide whether the current verified social/source channels with disabled forms satisfy release, or provide the approved form destination/workflow and authorize its prerequisites. Do not submit forms or enable collection/delivery meanwhile. |
+| Newsletter behavior | **PASS — parked scope; production copy stale** | Newsletter expansion is explicitly parked in `docs/process-upgrades-eleven-2026-09-22.md:33`. Candidate version 88 truthfully says sign-ups are not active; the regression test rejects a false launch date. Production version 82 still has the older October 21 signup copy. Frank: no newsletter launch decision is needed unless that parked scope changes. |
+| Podcast behavior | **BLOCKED — owner decision** | The process record lists podcast launch as a “Bet” and cites missing Apple ID, cover art, and unproduced MP3s (`docs/process-upgrades-eleven-2026-09-22.md:96-109`); it does not approve an inactive public state. Candidate version 88 now says no public episodes are available. Frank: confirm whether podcast launch is required for this release or the factual no-episodes state is acceptable until assets/destination are approved. |
+| Security, dependency, configuration, caching, and error handling | **PASS with disclosed non-runtime advisories** | `npm run verify` and CI passed. Production dependencies had zero audit findings; the full audit found nine high findings all through dev-only `braces@3.0.3`, with no patched upstream release recorded. Wrangler warns the preview environment does not inherit the top-level KV binding; preview has no scheduled refresh, falls back to live X resolution, and version 88 loaded and played a replay. This appears to preserve production KV isolation; no shared binding was added. Network feeds have timeout/size limits and replay URLs are constrained per `README.md`. Keep both observations visible; neither is demonstrated as a production runtime defect. |
+| Production release and rollback | **BLOCKED — not authorized yet** | `wrangler.jsonc` leaves the default deployment unrouted; preview and production are separate environments. `README.md:45-50,69-78` requires preview checks and explicit Frank approval for production cutover/rollback. Resolve failed/blocked rows, complete independent QA and production-readback plan, then request a specific cutover approval. Do not merge or deploy now. |
 
-## Safety boundaries
+## Release boundary
 
-Do not change DNS, Cloudflare configuration, production content, source code, or third-party accounts. Do not purchase, book, publish, submit forms, or send messages. Do not expose credentials or secret values.
-
-## Deliverable
-
-Return an evidence-based report with:
-
-- Executive outcome: PASS, PASS WITH ISSUES, or BLOCKED.
-- A route and feature matrix with expected behavior, observed result, evidence, and severity.
-- Exact reproduction steps for each issue.
-- Screenshots at desktop (1440 x 900), tablet (768 x 1024), and mobile (390 x 844) for material visual defects.
-- Separate lists for confirmed defects, suspected defects, environment limitations, and items not tested.
-- A prioritized remediation list. Do not implement fixes.
-
-End by stating exactly what was inspected, verified, not verified, and recommended.
+Production readiness is not established by a build, preview, or passing test alone. Before release: obtain the Shopify and Calendly destinations; resolve the forms and podcast decisions; verify the candidate’s `/game` and unknown-route HTTP responses; complete independent QA and remaining safe integration checks; then identify the production version after an explicitly approved cutover and repeat production smoke checks. Keep newsletter expansion parked. Do not change DNS, provider accounts, purchase services, submit forms, or start unrelated media, LaunchPad, Buffer, MFA, or monitoring work.

@@ -18,18 +18,10 @@ const X = `https://x.com/TheFilesWithDUB${utm}`;
 // @dubwiththefiles (the only Apache social handle).
 const INSTAGRAM = `https://www.instagram.com/dubwiththefiles${utm}`;
 
-/* PLACEHOLDER — NEWSLETTER SIGNUP URL (no verified URL yet):
- * "The Files" newsletter launches on beehiiv October 21, 2026 from
- * news.thefileswithdub.com. Drop the verified beehiiv signup URL in
- * NEWSLETTER_URL below before launch, then flip its row from
- * placeholder to a live link. */
+/* Keep blank while the owner-approved newsletter launch is parked. */
 const NEWSLETTER_URL = "";
 
-/* PLACEHOLDER — PODCAST SHOW PAGE / RSS (no verified URL yet):
- * Transistor is active but episode one is not published and no public
- * show-page or RSS URL is on record. Fill PODCAST_URL with the verified
- * Transistor show page / RSS URL when it exists. Apple/Spotify store
- * links stay unlinked ("coming soon") until their listings are live. */
+/* Keep blank until a podcast launch and public destination are approved. */
 const PODCAST_URL = "";
 
 type LinkRow =
@@ -40,10 +32,10 @@ const rows: LinkRow[] = [
   { label: "Latest episode", sub: "YouTube — @TheFilesWithDub", href: YOUTUBE },
   ...(NEWSLETTER_URL
     ? [{ label: "The Files — newsletter", sub: "Sign up for the monthly letter", href: `${NEWSLETTER_URL}${utm}` } as LinkRow]
-    : [{ label: "The Files — newsletter", sub: "Signup opens at launch — October 21", placeholder: "Coming Oct 21" } as LinkRow]),
+    : [{ label: "The Files — newsletter", sub: "Launch is parked; sign-ups are not active.", placeholder: "Not active" } as LinkRow]),
   ...(PODCAST_URL
     ? [{ label: "Podcast", sub: "Full episodes, RSS", href: `${PODCAST_URL}${utm}` } as LinkRow]
-    : [{ label: "Podcast", sub: "Apple & Spotify coming soon", placeholder: "Coming soon" } as LinkRow]),
+    : [{ label: "Podcast", sub: "No public podcast episodes are available.", placeholder: "Not active" } as LinkRow]),
   { label: "Patreon", sub: "Support the show", href: PATREON },
   { label: "Instagram", sub: "@dubwiththefiles", href: INSTAGRAM },
   { label: "X", sub: "@TheFilesWithDUB", href: X },
@@ -55,11 +47,12 @@ export default function LinksPage() {
     <main id="main-content" className="panel light" style={{ minHeight: "100svh" }}>
       <div className="center" style={{ maxWidth: "560px", margin: "0 auto" }}>
         <Image
-          src="/files-with-dub-globe-logo.png"
+          src="/files-with-dub-globe-logo-256-v1.webp"
           alt="The Files With Dub"
           width={112}
           height={112}
           priority
+          unoptimized
           style={{ borderRadius: "50%", marginBottom: "18px" }}
         />
         <p className="kicker">THE FILES WITH DUB</p>

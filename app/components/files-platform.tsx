@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { loadNightlife } from "../lib/nightlife-state.mjs";
 import SiteNavigation from "./site-navigation";
 import { NewsletterSignup, TipForm } from "./site-forms";
 
@@ -138,7 +139,7 @@ export default function FilesPlatform({ page }: { page: Page }) {
     {page === "tip" && <section className="panel light contact"><SectionTitle heading="h1" overline="THE TIP LINE" title={<>Share what<br /><em>you know.</em></>} copy="Have context, a lead, or information that belongs in the conversation? Send it to The Files for review." /><TipForm onNotice={setNotice} /><div className="contact-card"><p className="kicker">BEFORE YOU SHARE</p><p>Do not submit urgent safety concerns, private records, passwords, financial details, or information that could put someone at risk.</p><p>A secure, owner-approved workflow is required before public submissions can be delivered.</p></div></section>}
 
     {/* The shared globe mark carries the Files identity across the header and footer. */}
-    <footer><Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-globe-logo.png" alt="The Files With Dub" width={96} height={96} /></Link><p>© {new Date().getFullYear()} The Files With Dub</p><div className="footer-links"><a href={patreon} target="_blank" rel="noreferrer">Support on Patreon ↗</a><Link href="/broadcasts">X Broadcast archive</Link><Link href="/affiliate">Affiliate links</Link><Link href="/privacy">Privacy (draft)</Link><Link href="/terms">Terms (draft)</Link><Link href="/accessibility">Accessibility (draft)</Link></div></footer>
+    <footer><Link className="files-logo" href="/" aria-label="The Files With Dub home"><Image src="/files-with-dub-globe-logo-256-v1.webp" alt="The Files With Dub" width={96} height={96} unoptimized /></Link><p>© {new Date().getFullYear()} The Files With Dub</p><div className="footer-links"><a href={patreon} target="_blank" rel="noreferrer">Support on Patreon ↗</a><Link href="/broadcasts">X Broadcast archive</Link><Link href="/affiliate">Affiliate links</Link><Link href="/privacy">Privacy (draft)</Link><Link href="/terms">Terms (draft)</Link><Link href="/accessibility">Accessibility (draft)</Link></div></footer>
     {selected && <div className="modal-bg" role="dialog" aria-modal="true" aria-label={`Playing ${selected.title}`}><div className="modal" ref={modalRef}><button ref={closeButtonRef} className="close" onClick={() => setSelected(null)} aria-label="Close player">×</button><div className="embed"><iframe src={`https://www.youtube-nocookie.com/embed/${selected.videoId}?autoplay=1&rel=0`} title={selected.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /></div><p className="kicker">THE FILES / YOUTUBE</p><h2>{selected.title}</h2><p>{selected.runtime} · {selected.date}</p><a className="solid" href={`https://www.youtube.com/watch?v=${selected.videoId}`} target="_blank" rel="noreferrer">Open on YouTube ↗</a></div></div>}
     {notice && <div className="notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notice">×</button></div>}
     </main>
@@ -146,7 +147,25 @@ export default function FilesPlatform({ page }: { page: Page }) {
 }
 
 function SectionTitle({ overline, title, copy, heading = "h2" }: { overline: string; title: React.ReactNode; copy: string; heading?: "h1" | "h2" }) { const Heading = heading; return <div className="section-title"><div><p className="kicker">{overline}</p><Heading className="section-heading">{title}</Heading></div><p>{copy}</p></div>; }
-function NightlifeCalendar() { const [events, setEvents] = useState<Array<{ title: string; when: string; venue: string; note: string; href: string }>>([]); const [loaded, setLoaded] = useState(false); useEffect(() => { fetch("/api/nightlife").then(response => response.ok ? response.json() as Promise<{ events?: Array<{ title: string; when: string; venue: string; note: string; href: string }> }> : Promise.reject()).then(data => setEvents(data.events ?? [])).catch(() => setEvents([])).finally(() => setLoaded(true)); }, []); return <div className="nightlife-calendar"><div className="nightlife-heading"><p className="kicker">ON THE CALENDAR</p><p>Fresh listings from Eventbrite’s New York nightlife page.</p></div>{events.length ? <div className="nightlife-list">{events.map(event => <a href={event.href} target="_blank" rel="noreferrer" key={event.href}><div><span>{event.when}</span><h3>{event.title}</h3><p>{event.venue}</p></div><b>{event.note} <i>↗</i></b></a>)}</div> : <p className="calendar-empty">{loaded ? "The live listings are being refreshed. Browse the full current calendar on Eventbrite." : "Loading the current New York nightlife listings…"}</p>}<a className="outline nightlife-more" href="https://www.eventbrite.com/b/ny--new-york/nightlife/" target="_blank" rel="noreferrer">See more NYC nightlife ↗</a></div>; }
+function NightlifeCalendar() {
+  const [events, setEvents] = useState<Array<{ title: string; when: string; venue: string; note: string; href: string }>>([]);
+  const [status, setStatus] = useState<"loading" | "live" | "empty" | "unavailable">("loading");
+
+  useEffect(() => {
+    void loadNightlife().then(result => {
+      setEvents(result.events);
+      setStatus(result.status);
+    });
+  }, []);
+
+  const emptyMessage = status === "loading"
+    ? "Loading the current New York nightlife listings…"
+    : status === "empty"
+      ? "No upcoming listings are currently available. Browse Eventbrite for the full current calendar."
+      : "Current listings are unavailable. Try again later or browse Eventbrite for the full current calendar.";
+
+  return <div className="nightlife-calendar"><div className="nightlife-heading"><p className="kicker">ON THE CALENDAR</p><p>Fresh listings from Eventbrite’s New York nightlife page.</p></div>{status === "live" ? <div className="nightlife-list">{events.map(event => <a href={event.href} target="_blank" rel="noreferrer" key={event.href}><div><span>{event.when}</span><h3>{event.title}</h3><p>{event.venue}</p></div><b>{event.note} <i>↗</i></b></a>)}</div> : <p className="calendar-empty" role="status" aria-live="polite">{emptyMessage}</p>}<a className="outline nightlife-more" href="https://www.eventbrite.com/b/ny--new-york/nightlife/" target="_blank" rel="noreferrer">See more NYC nightlife ↗</a></div>;
+}
 function ApplePlaylist() { return <aside className="apple-playlist"><p className="kicker">NOW PLAYING</p><h3>Top 25<br /><em>New York City.</em></h3><p>Play the playlist right here. Apple Music may request sign-in for full-track playback.</p><iframe src="https://embed.music.apple.com/us/playlist/top-25-new-york-city/pl.a88b5c26caea48a59484370b6f79c9df" title="Top 25 New York City playlist on Apple Music" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" loading="lazy" /></aside>; }
 function MediaGrid({ items, onSelect }: { items: MediaItem[]; onSelect: (item: MediaItem) => void }) { return <div className="media-grid">{items.map(item => <button className="media-card" key={item.id} onClick={() => onSelect(item)} aria-label={`Play ${item.title}`}><div><img src={item.image} alt={`Thumbnail for ${item.title}`} width="480" height="360" loading="lazy" decoding="async" /><span>▶</span><small>THE FILES / YOUTUBE</small></div><p>{item.date} · {item.runtime}</p><h3>{item.title}</h3><b>Play clip ↗</b></button>)}</div>; }
 function Newsletter() { return <section className="newsletter" aria-labelledby="dispatch-title"><div><p className="kicker">THE DISPATCH</p><h2 id="dispatch-title">Stay in<br /><em>the files.</em></h2><p>Get the latest interviews, releases, events, and studio updates.</p></div><NewsletterSignup /></section>; }

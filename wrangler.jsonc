@@ -28,6 +28,15 @@
       "vars": {
         "FORMS_MODE": "disabled"
       },
+      "kv_namespaces": [
+        {
+          "binding": "BROADCASTS_KV",
+          "id": "b6d04834005e47f09602c7a671915747"
+        }
+      ],
+      "triggers": {
+        "crons": ["*/10 * * * *"]
+      },
       "routes": [
         {
           "pattern": "www.thefileswithdub.com/*",

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { loadNightlife } from "../app/lib/nightlife-state.mjs";
 
 async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -28,7 +29,7 @@ test("server-renders The Files With Dub media platform", async () => {
 test("uses the shared Files logo and reference header actions", async () => {
   const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.match(navigation, /files-with-dub-globe-logo\.png/);
+  assert.match(navigation, /files-with-dub-globe-logo-256-v1\.webp/);
   assert.match(navigation, /className="shop-link header-button"/);
   assert.match(navigation, /className="book-button header-button"/);
   assert.match(navigation, /className="action-arrow"/);
@@ -142,6 +143,10 @@ test("redirects external HTTP requests to HTTPS at the Worker boundary", async (
     assert.equal(retired.status, 404, path);
     assert.match(retired.headers.get("content-type") ?? "", /text\/plain/);
   }
+
+  const unknown = await worker.fetch(new Request("https://www.thefileswithdub.com/unmatched-release-check"), env, { waitUntil() {}, passThroughOnException() {} });
+  assert.equal(unknown.status, 404);
+  assert.match(unknown.headers.get("content-type") ?? "", /text\/html/);
 });
 
 test("retires the Game route and every source entry point", async () => {
@@ -263,11 +268,35 @@ test("places the studio booking destination directly after the session options",
 
 test("keeps Outside current and balances the Apple Music panel with the calendar", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
+  const state = await readFile(new URL("../app/lib/nightlife-state.mjs", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/start-here.css", import.meta.url), "utf8");
   assert.match(page, /Loading the current New York nightlife listings/i);
+  assert.match(page, /loadNightlife\(\)/);
+  assert.match(state, /Array\.isArray\(data\.events\)/);
+  assert.match(page, /No upcoming listings are currently available/i);
+  assert.match(page, /Current listings are unavailable/i);
+  assert.match(page, /role="status" aria-live="polite"/);
   assert.match(page, /useState<Array<\{ title: string; when: string; venue: string; note: string; href: string \}>>\(\[\]\)/i);
   assert.match(styles, /\.live-files-grid\{align-items:stretch\}/i);
   assert.match(styles, /\.nightlife-calendar,\.apple-playlist\{height:100%;display:flex;flex-direction:column\}/i);
+});
+
+test("classifies nightlife feed live, empty, HTTP, malformed, and network outcomes", async () => {
+  const event = { title: "Example", when: "Today", venue: "New York", note: "Tickets", href: "https://www.eventbrite.com/e/example" };
+  const live = await loadNightlife(async () => Response.json({ events: [event] }));
+  assert.deepEqual(live, { events: [event], status: "live" });
+
+  const empty = await loadNightlife(async () => Response.json({ events: [] }));
+  assert.deepEqual(empty, { events: [], status: "empty" });
+
+  const failed = await loadNightlife(async () => Response.json({ events: [] }, { status: 503 }));
+  assert.deepEqual(failed, { events: [], status: "unavailable" });
+
+  const malformed = await loadNightlife(async () => Response.json({ events: "not-an-array" }));
+  assert.deepEqual(malformed, { events: [], status: "unavailable" });
+
+  const offline = await loadNightlife(async () => { throw new Error("offline"); });
+  assert.deepEqual(offline, { events: [], status: "unavailable" });
 });
 
 test("presents every clip in one unified Files feed", async () => {
@@ -310,7 +339,7 @@ test("uses an on-site player and provides a cautious tip line", async () => {
 test("keeps the active identity free of discontinued show language", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(page, /files-with-dub-globe-logo\.png/);
+  assert.match(page, /files-with-dub-globe-logo-256-v1\.webp/);
   assert.doesNotMatch(page, /morning-show/i);
   assert.doesNotMatch(page, /on spaces/i);
   assert.match(styles, /object-fit:contain/i);
@@ -364,6 +393,15 @@ test("serves sitemap and robots metadata routes and keeps Game out", async () =>
   assert.match(robots, /Disallow: \/api\//);
   assert.match(robots, /Disallow: \/game/);
   assert.match(robots, /Sitemap: https:\/\/www\.thefileswithdub\.com\/sitemap\.xml/);
+});
+
+test("reports link-hub availability without inventing newsletter or podcast destinations", async () => {
+  const response = await render("/links");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Launch is parked; sign-ups are not active/);
+  assert.match(html, /No public podcast episodes are available/);
+  assert.doesNotMatch(html, /Coming Oct 21|October 21|coming soon|Launch is deferred/i);
 });
 
 test("keeps newsletter and policy language truthful while making the player responsive", async () => {
