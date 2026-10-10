@@ -29,10 +29,8 @@ test("uses the shared Files logo and reference header actions", async () => {
   const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   assert.match(navigation, /files-with-dub-globe-logo\.png/);
-  assert.match(navigation, /className="shop-link header-button"/);
   assert.match(navigation, /className="book-button header-button"/);
   assert.match(navigation, /className="action-arrow"/);
-  assert.match(navigation, /aria-label="Open the Files store"/);
   assert.match(layout, /files-with-dub-globe-logo\.png/);
 });
 
@@ -44,12 +42,19 @@ test("emits the Search Console ownership verification tag", async () => {
   assert.match(html, /google-site-verification/);
 });
 
-test("uses the live Shopify storefront instead of simulated commerce", async () => {
-  const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
-  assert.match(page, /https:\/\/9p7whp-1k\.myshopify\.com/i);
-  assert.match(page, /Shop the drop/i);
-  assert.doesNotMatch(page, /Add to demo bag/i);
-  assert.doesNotMatch(page, /SIMULATED COMMERCE/i);
+test("removes shopping destinations across every public page", async () => {
+  const routes = ["/", "/files", "/outside", "/studio", "/consulting", "/spill", "/contact", "/about", "/broadcasts", "/patreon", "/links", "/privacy", "/terms", "/accessibility"];
+  for (const path of routes) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert.doesNotMatch(html, /myshopify\.com|amazon\.com\/shop|href="\/(?:affiliate|shop|store|merch)(?:[/?#"])/i, `${path} contains a shopping destination`);
+    assert.doesNotMatch(html, /Shop the drop|Open the Files store|Affiliate links/i, path);
+  }
+  const home = await (await render("/")).text();
+  assert.match(home, /Two ways in/);
+  assert.match(home, /Explore studio/);
+  assert.match(home, /Explore consulting/);
 });
 
 test("places X immediately after The Files in navigation", async () => {
@@ -57,21 +62,18 @@ test("places X immediately after The Files in navigation", async () => {
   assert.ok(navigation.indexOf('["The Files", "/files"]') < navigation.indexOf('["X", "/broadcasts"]'));
   assert.ok(navigation.indexOf('["X", "/broadcasts"]') < navigation.indexOf('["Patreon", "/patreon"]'));
   assert.ok(navigation.indexOf('["Patreon", "/patreon"]') < navigation.indexOf('["Outside", "/outside"]'));
-  assert.ok(navigation.indexOf('["Spill", "/spill"]') < navigation.indexOf('["Shop", "/affiliate"]'));
-  assert.ok(navigation.indexOf('["Shop", "/affiliate"]') < navigation.indexOf('["Contact", "/contact"]'));
+  assert.ok(navigation.indexOf('["Spill", "/spill"]') < navigation.indexOf('["Contact", "/contact"]'));
   assert.doesNotMatch(navigation, /X Broadcasts|\?page=/);
 });
 
 test("keeps standalone pages in the Files navigation", async () => {
   const navigation = await readFile(new URL("../app/components/site-navigation.tsx", import.meta.url), "utf8");
-  const affiliate = await readFile(new URL("../app/affiliate/page.tsx", import.meta.url), "utf8");
   const broadcasts = await readFile(new URL("../app/broadcasts/page.tsx", import.meta.url), "utf8");
   const patreon = await readFile(new URL("../app/patreon/page.tsx", import.meta.url), "utf8");
   assert.match(navigation, /\["X", "\/broadcasts"\]/);
-  assert.match(navigation, /\["Shop", "\/affiliate"\]/);
+  assert.doesNotMatch(navigation, /\["Shop", "\/affiliate"\]/);
   assert.match(navigation, /menu-button/);
   assert.match(navigation, /Escape/);
-  assert.match(affiliate, /<SiteNavigation \/>/);
   assert.match(broadcasts, /<SiteNavigation \/>/);
   assert.match(patreon, /<SiteNavigation \/>/);
 });
@@ -171,24 +173,20 @@ test("routes Patreon members to the native signed-in experience", async () => {
   assert.match(styles, /\.patreon-feature-image img\{display:block;width:min\(88%,680px\)[^}]*object-fit:contain;object-position:center/);
 });
 
-test("renders Dub's Amazon products as a native sponsored grid", async () => {
-  const page = await readFile(new URL("../app/affiliate/page.tsx", import.meta.url), "utf8");
+test("hides direct storefront access while preserving its catalog and assets", async () => {
+  for (const path of ["/affiliate", "/affiliate/"]) {
+    let response = await render(path);
+    if (path.endsWith("/")) {
+      assert.equal(response.status, 308, path);
+      assert.equal(response.headers.get("location"), "/affiliate");
+      response = await render("/affiliate");
+    }
+    assert.equal(response.status, 404, path);
+    const html = await response.text();
+    assert.doesNotMatch(html, /amazon-product-card|amazon\.com|myshopify\.com|Dub’s.*picks/i);
+  }
   const catalog = await readFile(new URL("../app/affiliate/catalog.ts", import.meta.url), "utf8");
-  const styles = await readFile(new URL("../app/start-here.css", import.meta.url), "utf8");
-  assert.match(catalog, /https:\/\/www\.amazon\.com\/shop\/dubhere\/list\/297YHKL7CRWUL/i);
   assert.equal((catalog.match(/sponsoredDestination: cantDubUsStore/g) ?? []).length, 12);
-  assert.match(page, /amazonProducts\.map/);
-  assert.match(page, /amazon-product-grid/i);
-  assert.match(page, /amazon-product-card/i);
-  assert.match(catalog, /amazon-african-black-soap\.png/i);
-  assert.match(catalog, /amazon-raw-rolling-papers\.png/i);
-  assert.match(catalog, /amazon-herb-pharm-damiana\.png/i);
-  assert.match(page, /amazon-native-bar/i);
-  assert.match(page, /As an Amazon Associate, The Files With Dub earns from qualifying purchases/i);
-  assert.match(page, /rel="sponsored noreferrer"/i);
-  assert.doesNotMatch(page, /<iframe/i);
-  assert.match(styles, /\.amazon-product-grid\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/i);
-  assert.match(styles, /@media\(max-width:520px\)\{\.amazon-product-grid\{grid-template-columns:1fr\}/i);
 });
 
 test("publishes a full-size X broadcast replay view with the official X player", async () => {
