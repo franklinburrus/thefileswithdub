@@ -189,7 +189,7 @@ test("hides direct storefront access while preserving its catalog and assets", a
   assert.equal((catalog.match(/sponsoredDestination: cantDubUsStore/g) ?? []).length, 12);
 });
 
-test("publishes a full-size X broadcast replay view with the official X player", async () => {
+test("publishes an in-page X broadcast replay view with native playback controls", async () => {
   const page = await readFile(new URL("../app/broadcasts/page.tsx", import.meta.url), "utf8");
   const player = await readFile(new URL("../app/components/hls-video.tsx", import.meta.url), "utf8");
   const api = await readFile(new URL("../app/api/x-broadcasts/route.ts", import.meta.url), "utf8");
@@ -227,7 +227,7 @@ test("publishes a full-size X broadcast replay view with the official X player",
   assert.match(page, /Can.t DUB Me/i);
   assert.doesNotMatch(page, /Can.t DUB Me<br/i);
   assert.match(page, /REPLAY \{String\(index \+ 1\)/);
-  assert.match(page, /Play replay/i);
+  assert.match(page, /Open replay/i);
   assert.match(page, /Playback stays inside The Files/i);
   assert.match(player, /Replay temporarily unavailable/i);
   assert.match(styles, /\.broadcast-title\{white-space:nowrap/);

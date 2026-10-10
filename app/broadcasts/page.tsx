@@ -14,15 +14,30 @@ export default function Broadcasts() {
   const [selectedId, setSelectedId] = useState(xBroadcasts[0].id);
   const [archiveStatus, setArchiveStatus] = useState<"loading" | "ready" | "unavailable">("loading");
   const viewerRef = useRef<HTMLElement>(null);
+  const openingReplay = useRef(false);
   const selected = broadcasts.find(broadcast => broadcast.id === selectedId) ?? broadcasts[0];
 
   function openReplay(id: string) {
-    setSelectedId(id);
+    if (id === selectedId) {
+      revealPlayer();
+    } else {
+      openingReplay.current = true;
+      setSelectedId(id);
+    }
+  }
+
+  function revealPlayer() {
     // A card opens the shared player. Keep its native play control visible
     // and available for the direct user gesture required by some browsers.
     viewerRef.current?.focus({ preventScroll: true });
-    viewerRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+    viewerRef.current?.scrollIntoView({ block: "end", behavior: "instant" });
   }
+
+  useEffect(() => {
+    if (!openingReplay.current) return;
+    openingReplay.current = false;
+    revealPlayer();
+  }, [selectedId]);
 
   useEffect(() => {
     fetch("/api/x-broadcasts")
