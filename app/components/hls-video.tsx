@@ -23,9 +23,8 @@ export default function HlsVideo({ src, poster, title, sourceVerified }: { src: 
     video.addEventListener("error", unavailable);
 
     let hls: Hls | null = null;
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-    } else if (Hls.isSupported()) {
+    // Chrome's native HLS can reject replay timestamps that Hls.js remuxes.
+    if (Hls.isSupported()) {
       hls = new Hls({ enableWorker: true });
       hls.loadSource(src);
       hls.attachMedia(video);
@@ -33,6 +32,8 @@ export default function HlsVideo({ src, poster, title, sourceVerified }: { src: 
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) unavailable();
       });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = src;
     } else {
       queueMicrotask(unavailable);
     }

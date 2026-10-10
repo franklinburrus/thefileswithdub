@@ -424,7 +424,7 @@ test("broadcasts page renders descriptive titles instead of empty headings", asy
   assert.doesNotMatch(html, /<h2><\/h2>/, "empty h2 headings on /broadcasts");
   assert.doesNotMatch(html, /<h2>\s*<\/h2>/, "whitespace-only h2 on /broadcasts");
   assert.match(html, /J1 SPACE DRAMA \| IAN DUNLAP INTERVIEW \| CREATOR MONETIZATION/);
-  assert.match(html, /Checking replay/);
+  assert.match(html, /Loading the Files replay/);
   assert.doesNotMatch(html, />Play replay</, "unresolved entries must not advertise playback before source resolution");
 });
 
@@ -441,16 +441,14 @@ test("broadcast replay covers use neutral branding and retain custom artwork", a
   assert.match(sync, /\/broadcasts\/replay-card\.svg/);
   assert.match(html, /\/broadcasts\/replay-card\.svg/);
   assert.doesNotMatch(html, /\/broadcasts\/placeholder\.svg/);
-  assert.match(html, /\/broadcasts\/1AKEmmrYnnnKL\.png/);
+  assert.match(catalog, /id: "1AKEmmrYnnnKL"[^\n]+poster: "\/broadcasts\/1AKEmmrYnnnKL\.png"/);
 });
 
-test("broadcasts layout ships ItemList + VideoObject structured data", async () => {
+test("unresolved broadcasts are absent from public cards and structured data", async () => {
   const html = await (await render("/broadcasts")).text();
-  assert.match(html, /application\/ld\+json/);
-  assert.match(html, /"@type":"ItemList"/);
-  assert.match(html, /"@type":"VideoObject"/);
-  assert.match(html, /"@type":"ListItem"/);
-  assert.doesNotMatch(html, /"name":""\s*[,}]/, "VideoObject with empty name");
+  assert.doesNotMatch(html, /class="broadcast-list"[^>]*>\s*<button/, "cards wait for resolved playback availability");
+  assert.doesNotMatch(html, /"@type":"ItemList"/, "unresolved archive entries must not be indexed as public replays");
+  assert.match(html, /Loading the Files replay/);
 });
 
 test("displayTitleFor prefers sheet titles and falls back to factual labels", async () => {
