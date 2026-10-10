@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import HlsVideo from "../components/hls-video";
 import SiteNavigation from "../components/site-navigation";
 import { xBroadcasts, displayTitleFor, type XBroadcastReplay } from "../lib/x-broadcasts";
@@ -13,7 +13,16 @@ export default function Broadcasts() {
   );
   const [selectedId, setSelectedId] = useState(xBroadcasts[0].id);
   const [archiveStatus, setArchiveStatus] = useState<"loading" | "ready" | "unavailable">("loading");
+  const viewerRef = useRef<HTMLElement>(null);
   const selected = broadcasts.find(broadcast => broadcast.id === selectedId) ?? broadcasts[0];
+
+  function openReplay(id: string) {
+    setSelectedId(id);
+    // A card opens the shared player. Keep its native play control visible
+    // and available for the direct user gesture required by some browsers.
+    viewerRef.current?.focus({ preventScroll: true });
+    viewerRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }
 
   useEffect(() => {
     fetch("/api/x-broadcasts")
@@ -39,8 +48,8 @@ export default function Broadcasts() {
   return <><SiteNavigation /><main id="main-content" className="panel light broadcasts-page">
     <p className="kicker">THE FILES WITH DUB / X BROADCASTS</p>
     <h1 className="broadcast-title">Can’t DUB Me <em>Radio.</em></h1>
-    <p>Watch Dub’s public X broadcast replays directly inside The Files.</p>
-    <section className="broadcast-viewer" aria-label="Selected X broadcast">
+    <p>Watch Dub’s public X broadcast replays directly inside The Files. Open a replay below, then press play in the player.</p>
+    <section ref={viewerRef} className="broadcast-viewer" aria-label="Selected X broadcast" tabIndex={-1}>
       <div className="broadcast-toolbar">
         <div>
           <p className="kicker">SELECTED / X ARCHIVE</p>
@@ -54,11 +63,11 @@ export default function Broadcasts() {
     </section>
     {archiveStatus !== "loading" && !selected.hlsUrl && selected.sourceUrl && <p><a className="outline" href={selected.sourceUrl} target="_blank" rel="noreferrer">Check the original on X ↗</a></p>}
     <div className="broadcast-list">
-      {broadcasts.map((broadcast, index) => <button className={broadcast.id === selected.id ? "active" : ""} key={broadcast.id} onClick={() => setSelectedId(broadcast.id)} aria-pressed={broadcast.id === selected.id}>
+      {broadcasts.map((broadcast, index) => <button className={broadcast.id === selected.id ? "active" : ""} key={broadcast.id} onClick={() => openReplay(broadcast.id)} aria-pressed={broadcast.id === selected.id}>
         <Image src={broadcast.poster} alt={displayTitleFor(broadcast)} width={360} height={203} unoptimized />
         <span>REPLAY {String(index + 1).padStart(2, "0")}</span>
         <h2>{displayTitleFor(broadcast)}</h2>
-        <b>{archiveStatus === "loading" ? "Checking replay…" : broadcast.hlsUrl ? "Play replay" : broadcast.sourceUrl ? "Replay unavailable here" : "Archive only"}</b>
+        <b>{archiveStatus === "loading" ? "Checking replay…" : broadcast.hlsUrl ? "Open replay" : broadcast.sourceUrl ? "Replay unavailable here" : "Archive only"}</b>
       </button>)}
     </div>
     <p className="broadcast-note">Playback stays inside The Files. If a public source replay disappears, that broadcast remains listed with a clear unavailable state.</p>
