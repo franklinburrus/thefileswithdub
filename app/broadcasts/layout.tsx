@@ -13,13 +13,13 @@ const archiveStructuredData = {
     "@type": "ListItem",
     position: index + 1,
     item: {
-      "@type": "VideoObject",
+      "@type": broadcast.sourceUrl ? "VideoObject" : "CreativeWork",
       name: displayTitleFor(broadcast),
       thumbnailUrl: broadcast.poster.startsWith("/")
         ? `${SITE_URL}${broadcast.poster}`
         : broadcast.poster,
       ...(broadcast.date ? { uploadDate: broadcast.date } : {}),
-      embedUrl: `${SITE_URL}/broadcasts`,
+      ...(broadcast.sourceUrl ? { embedUrl: `${SITE_URL}/broadcasts` } : {}),
     },
   })),
 };

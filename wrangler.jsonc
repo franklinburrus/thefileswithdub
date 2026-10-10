@@ -25,6 +25,17 @@
     "production": {
       "name": "thefileswithdub",
       "workers_dev": false,
+      // Bindings are not inherited into environments. Restore the existing
+      // namespace so the production cron can refresh the durable catalog.
+      "kv_namespaces": [
+        {
+          "binding": "BROADCASTS_KV",
+          "id": "b6d04834005e47f09602c7a671915747"
+        }
+      ],
+      "triggers": {
+        "crons": ["*/10 * * * *"]
+      },
       "vars": {
         "FORMS_MODE": "disabled"
       },
