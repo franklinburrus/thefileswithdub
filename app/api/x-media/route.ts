@@ -66,7 +66,9 @@ export async function GET(request: Request) {
     response = await fetchWithTimeout(source, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; TheFilesWithDub/1.0)",
-        ...(range ? { Range: range } : {}),
+        // Rewriting changes every playlist's byte offsets. Fetch it whole;
+        // byte-range requests remain valid for unmodified media segments.
+        ...(range && !source.pathname.toLowerCase().endsWith(".m3u8") ? { Range: range } : {}),
       },
     }, 15_000);
   } catch {
@@ -79,10 +81,27 @@ export async function GET(request: Request) {
   // The allowlist was validated on the *initial* URL; fetch() follows
   // redirects by default. Re-validate the final URL before proxying, so an
   // upstream redirect can never leave the approved origin set.
-  const finalUrl = approvedReplayUrl(response.url);
+  let finalUrl = approvedReplayUrl(response.url);
   if (!finalUrl) return replayError("Replay redirect outside approved source", 400);
 
-  const contentType = response.headers.get("content-type") ?? "application/octet-stream";
+  let contentType = response.headers.get("content-type") ?? "application/octet-stream";
+  const isManifest = contentType.toLowerCase().includes("mpegurl") || finalUrl.pathname.toLowerCase().endsWith(".m3u8");
+  // An extensionless URL or redirect can reveal a playlist only after fetch.
+  // Never rewrite a partial representation; retry without the byte range.
+  if (isManifest && response.status === 206) {
+    try {
+      await response.body.cancel();
+      response = await fetchWithTimeout(finalUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; TheFilesWithDub/1.0)" },
+      }, 15_000);
+    } catch {
+      return replayError("Replay manifest unavailable", 502);
+    }
+    finalUrl = approvedReplayUrl(response.url);
+    if (!finalUrl) return replayError("Replay redirect outside approved source", 400);
+    if (response.status !== 200 || !response.body) return replayError("Replay manifest unavailable", 502);
+    contentType = response.headers.get("content-type") ?? "application/octet-stream";
+  }
   const headers = new Headers({
     "Content-Type": contentType,
     "Cache-Control": response.headers.get("cache-control") ?? "public, max-age=60",
@@ -90,16 +109,25 @@ export async function GET(request: Request) {
     "Access-Control-Expose-Headers": "Accept-Ranges, Content-Length, Content-Range",
     "X-Content-Type-Options": "nosniff",
   });
-  const contentRange = response.headers.get("content-range");
-  if (contentRange) headers.set("Content-Range", contentRange);
-  if (response.headers.get("accept-ranges")) headers.set("Accept-Ranges", "bytes");
-
-  if (contentType.toLowerCase().includes("mpegurl") || finalUrl.pathname.endsWith(".m3u8")) {
+  if (isManifest) {
     try {
-      return new Response(rewriteManifest(await readTextWithLimit(response, MAX_MANIFEST_BYTES), finalUrl), { status: response.status, headers });
+      const manifest = rewriteManifest(await readTextWithLimit(response, MAX_MANIFEST_BYTES), finalUrl);
+      headers.set("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8");
+      headers.set("Content-Length", String(new TextEncoder().encode(manifest).byteLength));
+      headers.set("Accept-Ranges", "none");
+      return new Response(manifest, { status: 200, headers });
     } catch {
       return replayError("Replay manifest unavailable", 502);
     }
+  }
+  const contentRange = response.headers.get("content-range");
+  if (contentRange) headers.set("Content-Range", contentRange);
+  const acceptRanges = response.headers.get("accept-ranges");
+  if (acceptRanges) headers.set("Accept-Ranges", acceptRanges);
+  // Fetch may decompress encoded bodies, invalidating the upstream length.
+  const contentLength = response.headers.get("content-length");
+  if (contentLength && /^\d+$/.test(contentLength) && !response.headers.get("content-encoding")) {
+    headers.set("Content-Length", contentLength);
   }
   return new Response(response.body, { status: response.status, headers });
 }
