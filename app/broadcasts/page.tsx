@@ -20,7 +20,14 @@ export default function Broadcasts() {
       .then(response => response.ok ? response.json() as Promise<{ broadcasts?: XBroadcastReplay[] }> : Promise.reject())
       .then(data => {
         if (!data.broadcasts?.length) throw new Error("No replay sources");
-        setBroadcasts(data.broadcasts);
+        // The API/edge cache may still hold a previous release's metadata.
+        // Keep this release's verified titles, sources and cover URLs; only
+        // replay availability is supplied by the durable catalog response.
+        const replayUrls = new Map(data.broadcasts.map(broadcast => [broadcast.id, broadcast.hlsUrl]));
+        setBroadcasts(xBroadcasts.map(broadcast => ({
+          ...broadcast,
+          hlsUrl: broadcast.sourceUrl ? replayUrls.get(broadcast.id) ?? null : null,
+        })));
         setArchiveStatus("ready");
       })
       .catch(() => {
@@ -43,7 +50,7 @@ export default function Broadcasts() {
       </div>
       {archiveStatus === "loading"
         ? <div className="broadcast-player"><Image src={selected.poster} alt={displayTitleFor(selected)} fill priority sizes="(max-width: 760px) 100vw, 82vw" unoptimized /><div className="broadcast-player-status" role="status">Loading the Files replay…</div></div>
-        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={displayTitleFor(selected)} />}
+        : <HlsVideo key={selected.id} src={selected.hlsUrl} poster={selected.poster} title={displayTitleFor(selected)} sourceVerified={!!selected.sourceUrl} />}
     </section>
     {archiveStatus !== "loading" && !selected.hlsUrl && selected.sourceUrl && <p><a className="outline" href={selected.sourceUrl} target="_blank" rel="noreferrer">Check the original on X ↗</a></p>}
     <div className="broadcast-list">

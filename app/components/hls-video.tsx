@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 type PlaybackState = "loading" | "ready" | "unavailable";
 
-export default function HlsVideo({ src, poster, title }: { src: string | null | undefined; poster: string; title: string }) {
+export default function HlsVideo({ src, poster, title, sourceVerified }: { src: string | null | undefined; poster: string; title: string; sourceVerified: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<PlaybackState>(src ? "loading" : "unavailable");
 
@@ -49,6 +49,6 @@ export default function HlsVideo({ src, poster, title }: { src: string | null | 
   return <div className="broadcast-player">
     <video ref={videoRef} controls playsInline preload="metadata" poster={poster} aria-label={`Play ${title}`} />
     {state === "loading" && <div className="broadcast-player-status" role="status">Loading the Files replay…</div>}
-    {state === "unavailable" && <div className="broadcast-player-status unavailable" role="status"><b>Replay temporarily unavailable.</b><span>The Files will keep this broadcast in the archive and restore playback if the source returns.</span></div>}
+    {state === "unavailable" && <div className="broadcast-player-status unavailable" role="status"><b>{sourceVerified ? "Replay temporarily unavailable." : "Archive entry."}</b><span>{sourceVerified ? "The Files will keep this broadcast in the archive and restore playback if the source returns." : "No verified playable source is available for this archive entry."}</span></div>}
   </div>;
 }
