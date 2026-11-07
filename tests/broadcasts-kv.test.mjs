@@ -195,7 +195,7 @@ test("scheduled refresh resolves every broadcast and rewrites the KV catalog", a
   const stored = JSON.parse(value);
   const ids = Object.keys(stored.urls);
   assert.ok(ids.length > 40, `expected the full catalog, got ${ids.length} entries`);
-  assert.ok(ids.every((id) => /^[A-Za-z0-9]{13}$/.test(id) ? stored.urls[id] === m3u8 : stored.urls[id] === null));
+  assert.ok(ids.every((id) => /^[A-Za-z0-9]{13,14}$/.test(id) ? stored.urls[id] === m3u8 : stored.urls[id] === null));
   assert.ok(requested.includes("https://x.com/i/spaces/1DxLdZjQNOaxm"));
   assert.ok(!requested.some((url) => /video-broadcast-|audio-space-/.test(url)));
 });
@@ -356,4 +356,19 @@ test("cold resolution fans out at 32 concurrent upstream fetches", async (t) => 
   await exec.settle();
 
   assert.equal(maxInFlight, 32, `expected 32-way fan-out, observed ${maxInFlight}`);
+});
+
+test('legacy stale refresh preserves last-known-good URLs during an X outage', async t => {
+  const instance=await worker();
+  const oldTime=Date.now()-7*60*60*1000;
+  const source='https://prod.video.pscp.tv/Transcoding/v1/hls/verified/master.m3u8';
+  const {calls,binding}=fakeKv({[KV_KEY]:catalogOf({'2onbAgvyKWBPYg':source},oldTime)});
+  const exec=execution();
+  t.after(()=>{fetchHandler=defaultFetchHandler;});
+  fetchHandler=async()=>new Response('limited',{status:429});
+  await instance.scheduled({cron:'*/10 * * * *'},baseEnv(binding),exec.ctx);
+  await exec.settle();
+  const saved=JSON.parse(calls.puts[0][1]);
+  assert.equal(saved.urls['2onbAgvyKWBPYg'],source);
+  assert.equal(saved.resolvedAt,oldTime);
 });

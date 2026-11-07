@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import SiteNavigation from "./site-navigation";
+import { useFeedItems } from "./use-feed";
+import { videosFromResponse, type MediaItem } from "../lib/video-response";
 import { NewsletterSignup, TipForm } from "./site-forms";
 
 export type Page = "home" | "library" | "files" | "studio" | "consulting" | "about" | "contact" | "tip";
@@ -24,7 +26,6 @@ const channel = "https://www.youtube.com/@TheFilesWithDub";
 const xProfile = "https://x.com/TheFilesWithDUB";
 const calendlyHome = "https://calendly.com/dubwiththefiles";
 const patreon = "https://www.patreon.com/cw/CANTDUBME";
-type MediaItem = { id: number; title: string; runtime: string; date: string; videoId: string; image: string };
 const fallbackMedia: MediaItem[] = [
   { id: 20, title: "🚨Karen Civil Explains the Future of Verzuz | Ish takes SHOT at Rick Ross | Patreon Exclusive 🗂️", runtime: "YouTube", date: "YouTube", videoId: "yf4qP6dZ7M0", image: "https://i.ytimg.com/vi/yf4qP6dZ7M0/hqdefault.jpg" },
   { id: 19, title: "🚨Joe Budden CHECKS Mandi for VIOLATING‼️😱🗂️| BEEF Simmering | Episode 949", runtime: "YouTube", date: "YouTube", videoId: "KWn3uHMDCf4", image: "https://i.ytimg.com/vi/KWn3uHMDCf4/hqdefault.jpg" },
@@ -68,8 +69,7 @@ const consultingServices = [
 export default function FilesPlatform({ page, homeBroadcast }: { page: Page; homeBroadcast?: ReactNode }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [media, setMedia] = useState<MediaItem[]>(fallbackMedia);
-  const [mediaStatus, setMediaStatus] = useState<"loading" | "live" | "fallback">("loading");
+  const { items: media, status: mediaStatus, health: mediaHealth } = useFeedItems("/api/videos", videosFromResponse, fallbackMedia);
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [notice, setNotice] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -81,7 +81,6 @@ export default function FilesPlatform({ page, homeBroadcast }: { page: Page; hom
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  useEffect(() => { fetch("/api/videos").then(response => response.ok ? response.json() as Promise<{ videos?: MediaItem[] }> : Promise.reject()).then(data => { if (data.videos?.length) { setMedia(data.videos); setMediaStatus("live"); } else { setMediaStatus("fallback"); } }).catch(() => setMediaStatus("fallback")); }, []);
   useEffect(() => {
     if (!selected) return;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -119,12 +118,12 @@ export default function FilesPlatform({ page, homeBroadcast }: { page: Page; hom
     {page === "home" && <>
       <section className="hero"><div className="hero-copy"><p className="kicker">INDEPENDENT MEDIA / QUEENS, NY</p><h1>THE CULTURE<br /><em>KEEPS RECEIPTS.</em></h1><p>Every clip, conversation, studio craft, and moment worth filing — all under one roof.</p><div className="button-row"><button className="outline" onClick={() => go("studio")}>Book the studio</button></div></div><div className="hero-art"><img src="/dub-mark.svg" alt="The Files With Dub brand mark" width="1200" height="720" fetchPriority="high" /><div className="file-stamp">THE FILES<br />WITH DUB<br /><b>001</b></div></div></section>
       {homeBroadcast}
-      <section className="panel light"><SectionTitle overline="LATEST FROM DUB" title={<>Open the <em>files.</em></>} copy="One source-aware feed for every clip published through The Files With Dub." /><MediaGrid items={media.slice(0, 3)} onSelect={setSelected} /><div className="center"><button className="solid" onClick={() => go("library")}>View every clip ↗</button></div></section>
+      <section className="panel light"><SectionTitle overline="LATEST FROM DUB" title={<>Open the <em>files.</em></>} copy="One source-aware feed for every clip published through The Files With Dub." /><FeedNotice status={mediaStatus} age={mediaHealth?.feedAgeMs} /><MediaGrid items={media.slice(0, 3)} onSelect={setSelected} /><div className="center"><button className="solid" onClick={() => go("library")}>View every clip ↗</button></div></section>
       <section className="panel split dark"><div><p className="kicker">THE BUSINESS OF THE FILES</p><h2>One platform.<br /><em>Two ways in.</em></h2></div><div className="path-grid"><button onClick={() => go("studio")}><b>01</b><h3>Book studio time</h3><p>Explore the studio session options before booking through the official calendar.</p><span>Explore studio ↗</span></button><button onClick={() => go("consulting")}><b>02</b><h3>Build a media plan</h3><p>Choose a consulting lane and book the working session that fits your goals.</p><span>Explore consulting ↗</span></button></div></section>
       <Newsletter />
     </>}
 
-    {page === "library" && <section className="panel light library"><SectionTitle heading="h1" overline="THE FILES / ALL CLIPS" title={<>One feed.<br /><em>Every file.</em></>} copy="Every new Dub upload is pulled from YouTube automatically, with no category walls between posts." /><div className="library-tools unified-feed-tools"><p><b>{media.length}</b> clips · newest first · {mediaStatus === "live" ? "live YouTube updates" : mediaStatus === "loading" ? "checking for new posts" : "last known posts"}</p><label>Search every clip <input value={query} onChange={event => setQuery(event.target.value)} placeholder="title or guest" /></label></div><MediaGrid items={shown} onSelect={setSelected} /><div className="source-note">Every card is sourced from The Files With Dub’s public YouTube channel, refreshes automatically as Dub posts, keeps its source attribution, and plays in the on-site player. Outside carries the current New York nightlife calendar and playlist.</div></section>}
+    {page === "library" && <section className="panel light library"><SectionTitle heading="h1" overline="THE FILES / ALL CLIPS" title={<>One feed.<br /><em>Every file.</em></>} copy="Every new Dub upload is pulled from YouTube automatically, with no category walls between posts." /><div className="library-tools unified-feed-tools"><p><b>{media.length}</b> clips · newest first · {mediaStatus === "ready" ? "live YouTube updates" : mediaStatus === "loading" ? "checking for new posts" : mediaStatus === "degraded" ? "saved verified posts · refresh delayed" : "saved starter posts · live feed unavailable"}</p><label>Search every clip <input value={query} onChange={event => setQuery(event.target.value)} placeholder="title or guest" /></label></div><FeedNotice status={mediaStatus} age={mediaHealth?.feedAgeMs} /><MediaGrid items={shown} onSelect={setSelected} /><div className="source-note">Every card is sourced from The Files With Dub’s public YouTube channel, refreshes automatically as Dub posts, keeps its source attribution, and plays in the on-site player. Outside carries the current New York nightlife calendar and playlist.</div></section>}
 
 
     {page === "files" && <section className="panel files live-files"><SectionTitle heading="h1" overline="OUTSIDE / NYC NIGHTS" title={<>New York<br /><em>after dark.</em></>} copy="A living guide to nightlife, music, and culture—sourced from Eventbrite’s New York nightlife listings." /><div className="live-files-grid"><NightlifeCalendar /><ApplePlaylist /></div><div className="event-promo"><div><p className="kicker">PUT IT ON THE RECORD</p><h3>Promoting an event<br /><em>in New York?</em></h3><p>Send the details to The Files for upcoming calendar consideration.</p></div><button className="solid" onClick={() => go("contact")}>Promote your next event ↗</button></div></section>}
@@ -143,6 +142,12 @@ export default function FilesPlatform({ page, homeBroadcast }: { page: Page; hom
     {notice && <div className="notice" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notice">×</button></div>}
     </main>
   </>;
+}
+
+function FeedNotice({ status, age }: { status: string; age?: number | null }) {
+  if (status !== "degraded" && status !== "unavailable") return null;
+  const freshness = typeof age === "number" ? ` Last verified ${Math.floor(age / 60_000)} minutes ago.` : "";
+  return <p role="status">{status === "degraded" ? "Showing the last verified YouTube feed while updates recover." : "YouTube updates are unavailable. Showing saved starter posts."}{freshness}</p>;
 }
 
 function SectionTitle({ overline, title, copy, heading = "h2" }: { overline: string; title: React.ReactNode; copy: string; heading?: "h1" | "h2" }) { const Heading = heading; return <div className="section-title"><div><p className="kicker">{overline}</p><Heading className="section-heading">{title}</Heading></div><p>{copy}</p></div>; }

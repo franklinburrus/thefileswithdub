@@ -1,0 +1,573 @@
+{
+  "verifiedAt": "2026-11-07T14:52:18.305Z",
+  "scope": "Local isolated Workers preview; remote Cloudflare preview remains gated",
+  "testCommand": "npm run verify",
+  "tests": {
+    "total": 105,
+    "passed": 105,
+    "failed": 0,
+    "lintErrors": 0,
+    "preExistingImageWarnings": 2
+  },
+  "source": {
+    "count": 79,
+    "baselinePreserved": 56,
+    "added": 23,
+    "removed": 0,
+    "oct29Count": 1,
+    "nov5Count": 1
+  },
+  "youtube": {
+    "count": 15,
+    "newest": "ysb4ulbDmZ0"
+  },
+  "playback": {
+    "availableVideos": 56,
+    "externalOnlySpaces": 14,
+    "unavailableVideos": [
+      {
+        "id": "1DxLddryWQPxm",
+        "sourceUrl": "https://x.com/i/broadcasts/1DxLddryWQPxm"
+      },
+      {
+        "id": "1jGXggZlkdVKZ",
+        "sourceUrl": "https://x.com/i/broadcasts/1jGXggZlkdVKZ"
+      },
+      {
+        "id": "1YxNrrOVnryxw",
+        "sourceUrl": "https://x.com/i/broadcasts/1YxNrrOVnryxw"
+      }
+    ],
+    "desktopNovember": {
+      "firstTime": 78.963997,
+      "secondTime": 154.758035,
+      "width": 1920,
+      "height": 1080
+    },
+    "desktopOctober": {
+      "firstTime": 1.019596,
+      "secondTime": 2.03659,
+      "width": 568,
+      "height": 320
+    },
+    "mobileViewport": {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "playbackTime": 74.695529,
+      "environment": "Desktop Chromium viewport emulation only"
+    },
+    "nativeMobile": "PENDING"
+  },
+  "browserRegressions": {
+    "publicationAfterOne61SecondPoll": true,
+    "activePlayerPreserved": true,
+    "youtubeOutageKeeps15": true,
+    "youtubeRecoveryClearsDegraded": true,
+    "homepageRecoveryAfterFiveFailures": true,
+    "progressWith50MsEvents": true
+  },
+  "health": {
+    "x": {
+      "lastAttemptAt": 1794063131492,
+      "lastSuccessAt": 1794063132692,
+      "newestSourceItem": {
+        "id": "2onbAgvyKWBPYg",
+        "publishedAt": "2026-11-05"
+      },
+      "newestPublishedItem": {
+        "id": "2onbAgvyKWBPYg",
+        "publishedAt": "2026-11-05"
+      },
+      "count": 79,
+      "lagMs": 0,
+      "consecutiveFailures": 0,
+      "errorCategory": null,
+      "state": "degraded",
+      "version": "0cd806e0d71fd167c9d38df14bf00b497d7e2db202514900744553355f196883",
+      "feedAgeMs": 5606,
+      "metadata": {
+        "lastAttemptAt": 1794063131492,
+        "lastSuccessAt": 1794063132692,
+        "newestSourceItem": {
+          "id": "2onbAgvyKWBPYg",
+          "publishedAt": "2026-11-05"
+        },
+        "newestPublishedItem": {
+          "id": "2onbAgvyKWBPYg",
+          "publishedAt": "2026-11-05"
+        },
+        "count": 79,
+        "lagMs": 0,
+        "consecutiveFailures": 0,
+        "errorCategory": null,
+        "state": "healthy",
+        "version": "0cd806e0d71fd167c9d38df14bf00b497d7e2db202514900744553355f196883",
+        "feedAgeMs": 5606
+      },
+      "playback": {
+        "lastAttemptAt": 1794063132911,
+        "lastSuccessAt": 1794063138244,
+        "newestSourceItem": {
+          "id": "2onbAgvyKWBPYg",
+          "publishedAt": "2026-11-05"
+        },
+        "newestPublishedItem": {
+          "id": "2onbAgvyKWBPYg",
+          "publishedAt": "2026-11-05"
+        },
+        "count": 56,
+        "lagMs": 0,
+        "consecutiveFailures": 3,
+        "errorCategory": "upstream-404",
+        "state": "degraded",
+        "version": "0cd806e0d71fd167c9d38df14bf00b497d7e2db202514900744553355f196883",
+        "feedAgeMs": 54,
+        "resolutions": {
+          "2onbAgvyKWBPYg": {
+            "sourceUrl": "https://x.com/i/broadcasts/2onbAgvyKWBPYg",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1oKMvNPnEzDGQ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1oKMvNPnEzDGQ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DxLdZBwezMxm": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DxLdZBwezMxm",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1qGvverwMlaGB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1qGvverwMlaGB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1qKDzWkERNwJV": {
+            "sourceUrl": "https://x.com/i/broadcasts/1qKDzWkERNwJV",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DGleVlAjBqJL": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DGleVlAjBqJL",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DGleValYENJL": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DGleValYENJL",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OxwbnMAQYPJB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OxwbnMAQYPJB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1RKjpbQbQMeJw": {
+            "sourceUrl": "https://x.com/i/broadcasts/1RKjpbQbQMeJw",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OxwbnqzzZqJB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OxwbnqzzZqJB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1NxaroXgNObKj": {
+            "sourceUrl": "https://x.com/i/broadcasts/1NxaroXgNObKj",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1RKjpbebkpwJw": {
+            "sourceUrl": "https://x.com/i/broadcasts/1RKjpbebkpwJw",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1AxRnZVLakVxl": {
+            "sourceUrl": "https://x.com/i/broadcasts/1AxRnZVLakVxl",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1XGygwElbLyxM": {
+            "sourceUrl": "https://x.com/i/broadcasts/1XGygwElbLyxM",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DxLdZjlmrQxm": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DxLdZjlmrQxm",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1NGaroPyqNnJj": {
+            "sourceUrl": "https://x.com/i/broadcasts/1NGaroPyqNnJj",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1AKEmvMgaRkKL": {
+            "sourceUrl": "https://x.com/i/broadcasts/1AKEmvMgaRkKL",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1AxRnZXRdPqxl": {
+            "sourceUrl": "https://x.com/i/broadcasts/1AxRnZXRdPqxl",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1nxeLMYVXwoJX": {
+            "sourceUrl": "https://x.com/i/broadcasts/1nxeLMYVXwoJX",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1PKqrNAvXEbGb": {
+            "sourceUrl": "https://x.com/i/broadcasts/1PKqrNAvXEbGb",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1oKMvNLVMzNGQ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1oKMvNLVMzNGQ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1kJzDPoaOpRKv": {
+            "sourceUrl": "https://x.com/i/broadcasts/1kJzDPoaOpRKv",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1oKMvNOXBpnGQ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1oKMvNOXBpnGQ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DxleVDmnWgKL": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DxleVDmnWgKL",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1jxXgBzgylvJZ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1jxXgBzgylvJZ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OxwbnwmvMoJB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OxwbnwmvMoJB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1jxXgBBneeEJZ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1jxXgBBneeEJZ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1vKpPNPWnnbKE": {
+            "sourceUrl": "https://x.com/i/broadcasts/1vKpPNPWnnbKE",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OxwbnlaZpqJB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OxwbnlaZpqJB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OGwbbdYvObKB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OGwbbdYvObKB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1kJzDDYMPZXKv": {
+            "sourceUrl": "https://x.com/i/broadcasts/1kJzDDYMPZXKv",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1pKdRRkyMONJW": {
+            "sourceUrl": "https://x.com/i/broadcasts/1pKdRRkyMONJW",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1AKEmmrYnnnKL": {
+            "sourceUrl": "https://x.com/i/broadcasts/1AKEmmrYnnnKL",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1rGmqqargvLGy": {
+            "sourceUrl": "https://x.com/i/broadcasts/1rGmqqargvLGy",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1jGXggPZWLVKZ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1jGXggPZWLVKZ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1YGNrrmoqZoGw": {
+            "sourceUrl": "https://x.com/i/broadcasts/1YGNrrmoqZoGw",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1XxyggRVnEVGM": {
+            "sourceUrl": "https://x.com/i/broadcasts/1XxyggRVnEVGM",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1AxRnnwoqwyxl": {
+            "sourceUrl": "https://x.com/i/broadcasts/1AxRnnwoqwyxl",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1nxeLLQwQjoJX": {
+            "sourceUrl": "https://x.com/i/broadcasts/1nxeLLQwQjoJX",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1dJrPPLmBlqKX": {
+            "sourceUrl": "https://x.com/i/broadcasts/1dJrPPLmBlqKX",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1DxLddryWQPxm": {
+            "sourceUrl": "https://x.com/i/broadcasts/1DxLddryWQPxm",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": null,
+            "errorCategory": "upstream-404",
+            "ageMs": null
+          },
+          "1vJpPPOnjPZJE": {
+            "sourceUrl": "https://x.com/i/broadcasts/1vJpPPOnjPZJE",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1XxyggYqmoeGM": {
+            "sourceUrl": "https://x.com/i/broadcasts/1XxyggYqmoeGM",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1qKVmmLLaydxB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1qKVmmLLaydxB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1pKdRRlAvRjJW": {
+            "sourceUrl": "https://x.com/i/broadcasts/1pKdRRlAvRjJW",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1jGXggZlkdVKZ": {
+            "sourceUrl": "https://x.com/i/broadcasts/1jGXggZlkdVKZ",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": null,
+            "errorCategory": "upstream-404",
+            "ageMs": null
+          },
+          "1YxNrrOVnryxw": {
+            "sourceUrl": "https://x.com/i/broadcasts/1YxNrrOVnryxw",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": null,
+            "errorCategory": "upstream-404",
+            "ageMs": null
+          },
+          "1PKqrrqvyomGb": {
+            "sourceUrl": "https://x.com/i/broadcasts/1PKqrrqvyomGb",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1mGPaawEbrMJN": {
+            "sourceUrl": "https://x.com/i/broadcasts/1mGPaawEbrMJN",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1yNGabgjOOdJj": {
+            "sourceUrl": "https://x.com/i/broadcasts/1yNGabgjOOdJj",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1gqxvrQPDrexB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1gqxvrQPDrexB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1PlKQOpPnLBJE": {
+            "sourceUrl": "https://x.com/i/broadcasts/1PlKQOpPnLBJE",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1lPJqvXORAExb": {
+            "sourceUrl": "https://x.com/i/broadcasts/1lPJqvXORAExb",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1OyJAjEEroDxb": {
+            "sourceUrl": "https://x.com/i/broadcasts/1OyJAjEEroDxb",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1LyxBXdyVPrGN": {
+            "sourceUrl": "https://x.com/i/broadcasts/1LyxBXdyVPrGN",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1ZkJzZmNeeWJv": {
+            "sourceUrl": "https://x.com/i/broadcasts/1ZkJzZmNeeWJv",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1MYGNlPQYvvxw": {
+            "sourceUrl": "https://x.com/i/broadcasts/1MYGNlPQYvvxw",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1zqKVdEyYOLJB": {
+            "sourceUrl": "https://x.com/i/broadcasts/1zqKVdEyYOLJB",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          },
+          "1ZkKzZkYPlLKv": {
+            "sourceUrl": "https://x.com/i/broadcasts/1ZkKzZkYPlLKv",
+            "lastAttemptAt": 1794063132911,
+            "lastSuccessAt": 1794063138244,
+            "errorCategory": null,
+            "ageMs": 54
+          }
+        }
+      }
+    },
+    "youtube": {
+      "lastAttemptAt": 1794063132705,
+      "lastSuccessAt": 1794063132899,
+      "newestSourceItem": {
+        "id": "ysb4ulbDmZ0",
+        "publishedAt": "2026-11-06T20:30:28.000Z"
+      },
+      "newestPublishedItem": {
+        "id": "ysb4ulbDmZ0",
+        "publishedAt": "2026-11-06T20:30:28.000Z"
+      },
+      "count": 15,
+      "lagMs": 0,
+      "consecutiveFailures": 0,
+      "errorCategory": null,
+      "state": "healthy",
+      "version": "2359d7e7bd4ffc2527474c9df3d54ceb61a48f8e4e325522b460687d171cbf5b",
+      "feedAgeMs": 5400
+    }
+  },
+  "deploy": {
+    "remotePreview": "PENDING entitlement verification or metered-usage approval",
+    "production": "NOT_DEPLOYED",
+    "firstNewScheduledRuns": "PENDING"
+  },
+  "hashes": {
+    "package-lock.json": "d0616618f257d711c44843a5e0ab1654c982133080a547ea0b85ab2a9fabf851",
+    "dist/server/index.js": "436d423421b435e30e56f8caaeeb728e5a0c245e53507310b5a1f1b1aece3864",
+    ".wrangler/qa/coordinator-preview/index.js": "4a2034c6b29085c0d1f84370dca51933819b3e6ee5ce81fb703c5450575ba73b"
+  }
+}

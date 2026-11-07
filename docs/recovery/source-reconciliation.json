@@ -1,0 +1,242 @@
+{
+  "spreadsheetId": "17uhDO06vmVEz96YrUnA6aHyV5fL_3AAs3ylOjrYRLwI",
+  "baselineCount": 56,
+  "catalogCount": 79,
+  "added": 23,
+  "removed": 0,
+  "baselineMetadataChanged": 0,
+  "newTitleRows": "Broadcast Titles!A62:C81",
+  "newTitleRowsReadBackExactly": 20,
+  "approvedTitlesPreserved": 3,
+  "normalizedSourceCell": "Master Library!J4264",
+  "originalStatusRetainedInCellNote": true,
+  "expectedCheckpointCount": 78,
+  "differenceExplanation": "One further Space was verified from the original status expanded URL: 1nKOLQljzklGR.",
+  "mappings": [
+    {
+      "id": "1oKMvNPnEzDGQ",
+      "sourceUrl": "https://x.com/i/broadcasts/1oKMvNPnEzDGQ",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: PACK EM UP!!!!",
+      "archiveDate": "2026-10-29",
+      "verifiedAt": "2026-11-07T13:45:50.196275+00:00",
+      "metadataSha256": "2f6d4ac61213a250e6b417e7c0475208c871d6a61996310443ab81cdfa771c6a",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1DGleVlAjBqJL",
+      "sourceUrl": "https://x.com/i/broadcasts/1DGleVlAjBqJL",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: TACO, TITTIES, TRICKS, & TOPIC TUESDAY!!! 🗂️",
+      "archiveDate": "2026-10-20",
+      "verifiedAt": "2026-11-07T13:45:50.196871+00:00",
+      "metadataSha256": "1dcc60334f679863f79ef65d772d46de88558283152dafa08268b53f1ad35b65",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1DGleValYENJL",
+      "sourceUrl": "https://x.com/i/broadcasts/1DGleValYENJL",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: JOE BUDDEN, IAN,  & THE KEEBLER  VS THE INDUSTRY 🗂️ | PURE VIBES, LOVE, & MESS!!!",
+      "archiveDate": "2026-10-16",
+      "verifiedAt": "2026-11-07T13:45:50.196980+00:00",
+      "metadataSha256": "3d74173d1ac4e0742e18dab600a31a6b17ce5382ce0eb3e7f4554b39713f2714",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1OxwbnMAQYPJB",
+      "sourceUrl": "https://x.com/i/broadcasts/1OxwbnMAQYPJB",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: FAT JOE VS JOE BUDDEN POD | STREET ANTICS (ZIP IT UP) | DJ AKADEMIKS VS HIP HOP |",
+      "archiveDate": "2026-10-15",
+      "verifiedAt": "2026-11-07T13:45:50.197064+00:00",
+      "metadataSha256": "7f08c44928db3bbd1998230ff05cca7c5e5f924628e5bb3892050b1ca50feed1",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1OxwbnMOjzEJB",
+      "sourceUrl": "https://x.com/i/spaces/1OxwbnMOjzEJB",
+      "titleFromOriginalMetadata": "🚨JBP Reviews and SMOKE.. 🗂️",
+      "archiveDate": "2026-10-15",
+      "verifiedAt": "2026-11-07T13:45:50.564069+00:00",
+      "metadataSha256": "b19216b2b1b61a2097aede381df63f405bbd7d1330cabd3e229d5d0fefacc60d",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1RJjpbYmLAwKw",
+      "sourceUrl": "https://x.com/i/spaces/1RJjpbYmLAwKw",
+      "titleFromOriginalMetadata": "🚨WAKE IT UP‼️(Volume 2) The Joe Ta(p)kes",
+      "archiveDate": "2026-10-09",
+      "verifiedAt": "2026-11-07T13:45:50.564185+00:00",
+      "metadataSha256": "619705792830174db2c87ea159f38910dadbabd0ad73cefdd220a4c92bfabffa",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1RKjpbQbQMeJw",
+      "sourceUrl": "https://x.com/i/broadcasts/1RKjpbQbQMeJw",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: WAKE IT UP DUB!!!! 🗂️",
+      "archiveDate": "2026-10-05",
+      "verifiedAt": "2026-11-07T13:45:50.583607+00:00",
+      "metadataSha256": "907fe4a76799e630db59d6e96570f6fa104743bb8f226480925a6eeeb559bdbf",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1OGwbnqrMzRKB",
+      "sourceUrl": "https://x.com/i/spaces/1OGwbnqrMzRKB",
+      "titleFromOriginalMetadata": "Quickie Space: Is Ish Lying❓| YouTubers Conflicted.. 🗂️",
+      "archiveDate": "2026-10-02",
+      "verifiedAt": "2026-11-07T13:45:50.612871+00:00",
+      "metadataSha256": "d925afc2c06a0b7f86efe0ba3b80e9f1d35e49f10b525d1bf8aba2dd248fee30",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1OxwbnqzzZqJB",
+      "sourceUrl": "https://x.com/i/broadcasts/1OxwbnqzzZqJB",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: WHAT SHOULD WE PUT ON THE DOCKET? 🗂️ 35 MIN LIVE, LETS SHAKE IT UP? OR CHILL?",
+      "archiveDate": "2026-09-30",
+      "verifiedAt": "2026-11-07T13:45:50.932816+00:00",
+      "metadataSha256": "2a841a72fe81ada6334e7255cfeae969a6d48e8263ab256254078b09b16d6ab7",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1oJMvNEmplexQ",
+      "sourceUrl": "https://x.com/i/spaces/1oJMvNEmplexQ",
+      "titleFromOriginalMetadata": "🚨15 minutes.. What went wrong❓🗂️",
+      "archiveDate": "2026-09-30",
+      "verifiedAt": "2026-11-07T13:45:50.941053+00:00",
+      "metadataSha256": "ab575d5a13e619544a9e69c1735f0ee7ae48a338f0e16c23af4649b007c78e33",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1AxRnZykEgVxl",
+      "sourceUrl": "https://x.com/i/spaces/1AxRnZykEgVxl",
+      "titleFromOriginalMetadata": "🚨Streets is Watching, More IMPORTANTLY DUB is Watching.. 🗂️",
+      "archiveDate": "2026-09-29",
+      "verifiedAt": "2026-11-07T13:45:50.958754+00:00",
+      "metadataSha256": "8e570e825e01f0c3e02333faae62c01cdf056bac7be85ba66742f3e4602d5882",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1NxaroXgNObKj",
+      "sourceUrl": "https://x.com/i/broadcasts/1NxaroXgNObKj",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: STAY AWAY FROM THE WEAK | NIGGAS PUSSY | WHERE WOULD WE BE WITHOUT THE JBP 🗂️ EVERYTHING YOUTUBE AFTER THIS | FUCK EM 🗂️",
+      "archiveDate": "2026-09-26",
+      "verifiedAt": "2026-11-07T13:45:51.002511+00:00",
+      "metadataSha256": "1572c39cdf2f460d72cdd8d3e620a87992ab7c65854769a70c4ebd72139c6b2f",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1qxoNYgjeXXJv",
+      "sourceUrl": "https://x.com/i/spaces/1qxoNYgjeXXJv",
+      "titleFromOriginalMetadata": "🚨Rory Apologized BUT Who does MAL need to speak to at JBP❓25 mins",
+      "archiveDate": "2026-09-25",
+      "verifiedAt": "2026-11-07T13:45:51.208719+00:00",
+      "metadataSha256": "068022ad0f9aba6b8f908eb5d38d208fd8a3d9dcf61d41045cc848e46cbc7b1e",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1RKjpbebkpwJw",
+      "sourceUrl": "https://x.com/i/broadcasts/1RKjpbebkpwJw",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: IT WAS ALL GOOD JUST A WEEK AGO.. 🗂️ THE WATER DIRTY BUT THE GRASS IS CUT 🗂️",
+      "archiveDate": "2026-09-23",
+      "verifiedAt": "2026-11-07T13:45:51.310468+00:00",
+      "metadataSha256": "e838d066c23e33f542f782aec48fe975ff2543954a635aa9fedbf583c08e4a3a",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1AxRnZVLakVxl",
+      "sourceUrl": "https://x.com/i/broadcasts/1AxRnZVLakVxl",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: Bacon, Egg, & Cheese was TRASH Lil Pablo.. 😂🗂️",
+      "archiveDate": "2026-09-21",
+      "verifiedAt": "2026-11-07T13:45:51.319391+00:00",
+      "metadataSha256": "345f23770d9cfab06ea01d0dfd2dbb00a4ca842b13630ab5064420a13aa76ae7",
+      "existingApprovedTitlesPreserved": [
+        {
+          "episodeKey": "video-broadcast-2026-09-21-01",
+          "title": "HOODIE SEASON | JOE BUDDEN CAN'T BE HONEST | DJ PREMIER",
+          "date": "2026-09-21"
+        }
+      ]
+    },
+    {
+      "id": "1pJkOXEXdrNJj",
+      "sourceUrl": "https://x.com/i/spaces/1pJkOXEXdrNJj",
+      "titleFromOriginalMetadata": "🚨The MORE JBP Mics, The Better 🗂️",
+      "archiveDate": "2026-09-20",
+      "verifiedAt": "2026-11-07T13:45:51.398756+00:00",
+      "metadataSha256": "8df27671b66da94ac251aed6757c472c70c0cb2073d8d93d1398031720ea07a3",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1XGygwElbLyxM",
+      "sourceUrl": "https://x.com/i/broadcasts/1XGygwElbLyxM",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: NIGHT AIN'T OVER PUSS BOY!!! 🗂️",
+      "archiveDate": "2026-09-18",
+      "verifiedAt": "2026-11-07T13:45:51.574954+00:00",
+      "metadataSha256": "36505f9c675f7a4941b27a677e2448c167018cd20d085eb3cad77328ada97036",
+      "existingApprovedTitlesPreserved": [
+        {
+          "episodeKey": "video-broadcast-2026-09-19-01",
+          "title": "LATE NIGHT SET | VLAD & ADAM22 | FBA CULTURE TALK",
+          "date": "2026-09-19"
+        }
+      ]
+    },
+    {
+      "id": "1OxwbnOMBbbJB",
+      "sourceUrl": "https://x.com/i/spaces/1OxwbnOMBbbJB",
+      "titleFromOriginalMetadata": "Marc Lamont Hill, Remy & Q50 shit WICKED🗂️",
+      "archiveDate": "2026-09-17",
+      "verifiedAt": "2026-11-07T13:45:51.737058+00:00",
+      "metadataSha256": "04b382d362b2b0c6247f22a2bb624bd69b8b029a1cbb862412fd2d894b9357b3",
+      "existingApprovedTitlesPreserved": [
+        {
+          "episodeKey": "audio-space-2026-09-17-01",
+          "title": "MARC LAMONT HILL LYING | REMY MA & MILLYZ | KING VON SHOOTING",
+          "date": "2026-09-17"
+        }
+      ]
+    },
+    {
+      "id": "1qKDzWkERNwJV",
+      "sourceUrl": "https://x.com/i/broadcasts/1qKDzWkERNwJV",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: FRENZY FRIDAY!!! JOE BUDDEN VS FLIP | SURF VS ZIP | YUNG MIAMI & VIBES🗂️",
+      "archiveDate": "2026-10-23",
+      "verifiedAt": "2026-11-07T13:45:51.741715+00:00",
+      "metadataSha256": "1ae9846ae32b60f371efd9f130f624ea56baa8f0f8ab6e90f8ffe666b4a65f29",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1qGvverwMlaGB",
+      "sourceUrl": "https://x.com/i/broadcasts/1qGvverwMlaGB",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: WHO CONTROLS COOL? HIP HOP!!!",
+      "archiveDate": "2026-10-27",
+      "verifiedAt": "2026-11-07T13:45:51.751022+00:00",
+      "metadataSha256": "c5b260d5bdeaad7f2e95d718ab830993f06301ebd842c9497eb824b6d4dcd4df",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1DxLdZBwezMxm",
+      "sourceUrl": "https://x.com/i/broadcasts/1DxLdZBwezMxm",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: ALL YOU NIGGAS ASS CHEEKS!!! MARC, THE BIG GUZZLER, AND THE REST OF YOU TOO!!!",
+      "archiveDate": "2026-10-29",
+      "verifiedAt": "2026-11-07T13:45:51.874149+00:00",
+      "metadataSha256": "6b93e3db7446c7384fc8c327dae18d366485f4b3d9430a42f40ba25cf5904522",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "2onbAgvyKWBPYg",
+      "sourceUrl": "https://x.com/i/broadcasts/2onbAgvyKWBPYg",
+      "titleFromOriginalMetadata": "🚨Can't DUB Me Radio: THE JBP MET ME I SHOOK SHIT UP AND THEY MAD, WE JUST HERE FOR THE CAKE, AND TO SHOW YOU NIGGAS SOMETHING 🗂️",
+      "archiveDate": "2026-11-05",
+      "verifiedAt": "2026-11-07T13:45:52.027636+00:00",
+      "metadataSha256": "389dcf281ff3f9db953b09ecd1cd81083dc14153ea27740e62004523128fc8b0",
+      "existingApprovedTitlesPreserved": []
+    },
+    {
+      "id": "1nKOLQljzklGR",
+      "sourceUrl": "https://x.com/i/spaces/1nKOLQljzklGR",
+      "titleFromOriginalMetadata": "🚨Why Was QueenzFlip & Emanny Laughing About Clipper Tier Changes❓",
+      "archiveDate": "2026-10-25",
+      "verifiedAt": "2026-11-07T13:47:13.328824+00:00",
+      "metadataSha256": "afc4e6608bdb993761fd391411ffadaf7981e2ce0d3efd7e5dc1048f7236f28a",
+      "existingApprovedTitlesPreserved": []
+    }
+  ]
+}

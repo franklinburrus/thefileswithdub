@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dub-feed-bootstrap-local-only",
+  "account_id": "ea7a77735549fff1fba3e54e742e6e7b",
+  "main": "scripts/feed-bootstrap.ts",
+  "compatibility_date": "2026-09-12",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "env": {
+    "preview": {
+      "services": [{ "binding": "FEED_COORDINATOR", "service": "thefileswithdub-feeds-preview", "remote": true }]
+    },
+    "production": {
+      "services": [{ "binding": "FEED_COORDINATOR", "service": "thefileswithdub-feeds", "remote": true }]
+    }
+  }
+}

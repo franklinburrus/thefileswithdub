@@ -1,5 +1,6 @@
 /** Cloudflare Worker entry point for the vinext application. */
 import handler from "vinext/server/app-router-entry";
+import { runtimeFeedResponse } from "./feed-gateway";
 import {
   BROADCASTS_KV_KEY,
   catalogFromResponseBody,
@@ -268,7 +269,7 @@ async function refreshCatalog(kv: KVNamespace, label: string): Promise<void> {
   // absent catalogs get a full resolution; incremental work preserves that age.
   const existing = await readCatalog(kv);
   const catalog =
-    existing && !isCatalogStale(existing) ? await resolveCatalog(existing) : await resolveCatalog();
+    await resolveCatalog(existing ?? undefined, !!existing && isCatalogStale(existing));
   await writeCatalog(kv, catalog, label);
 }
 
@@ -299,7 +300,11 @@ const worker = {
     }
     let response: Response;
     const pathname = requestUrl.pathname;
-    if (pathname === "/api/videos") {
+    if (["/api/videos", "/api/x-broadcasts", "/api/feed-health"].includes(pathname) && env.FEED_COORDINATOR) {
+      response = await runtimeFeedResponse(request, env.FEED_COORDINATOR, ctx, edgeCache());
+    } else if (pathname === "/api/feed-health") {
+      response = Response.json({ error: "Feed coordinator not configured" }, { status: 503, headers: { "Cache-Control": "no-store" } });
+    } else if (pathname === "/api/videos") {
       response = await withVideoCache(request, env, ctx);
     } else if (pathname === "/api/x-broadcasts") {
       response = await withBroadcastsCache(request, env, ctx);
@@ -316,6 +321,12 @@ const worker = {
   // Cron refresh for the KV broadcasts catalog (wrangler.jsonc triggers).
   // Keeps HLS URLs fresh without any visitor request paying the fan-out.
   async scheduled(_event: { cron: string }, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (env.FEED_COORDINATOR) {
+      ctx.waitUntil(env.FEED_COORDINATOR.fetch(new Request("https://feeds/refresh/playback", { method: "POST" }))
+        .then(response => { if (!response.ok) console.error("[feeds] playback refresh failed", response.status); })
+        .catch(() => console.error("[feeds] playback coordinator unavailable")));
+      return;
+    }
     const kv = broadcastsKv(env);
     if (!kv) {
       console.log("[broadcasts-kv] scheduled refresh skipped: BROADCASTS_KV not bound");

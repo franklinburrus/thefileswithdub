@@ -16,6 +16,7 @@
   "env": {
     "preview": {
       "name": "thefileswithdub-preview",
+      "services": [{ "binding": "FEED_COORDINATOR", "service": "thefileswithdub-feeds-preview" }],
       "workers_dev": true,
       "vars": {
         "FORMS_MODE": "disabled"
@@ -24,6 +25,7 @@
     },
     "production": {
       "name": "thefileswithdub",
+      "services": [{ "binding": "FEED_COORDINATOR", "service": "thefileswithdub-feeds" }],
       "workers_dev": false,
       // Bindings are not inherited into environments. Restore the existing
       // namespace so the production cron can refresh the durable catalog.
@@ -50,15 +52,6 @@
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS"
-  },
-  "kv_namespaces": [
-    {
-      "binding": "BROADCASTS_KV",
-      "id": "b6d04834005e47f09602c7a671915747"
-    }
-  ],
-  "triggers": {
-    "crons": ["*/10 * * * *"]
   },
   "observability": {
     "enabled": true,

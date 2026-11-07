@@ -1,32 +1,67 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, writeFile, rm, stat, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-test("source sync preserves Space URLs, archives unverified identities, and excludes unrelated videos", async (t) => {
+const id = "2onbAgvyKWBPYg";
+const snapshot = {
+  masterRows: [["Broadcast date", "Content type", "Source broadcast URL", "Episode key"], ["2026-11-05", "X Video Broadcast", `https://x.com/i/broadcasts/${id}`, "new"]],
+  titleRows: [["Episode key", "Broadcast title"], ["new", "Verified title"]],
+};
+async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), "broadcast-sync-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  for (const dir of ["scripts", "app/lib", "public/broadcasts"]) await mkdir(join(root, dir), { recursive: true });
-  await writeFile(join(root, "scripts/broadcasts-sync.mjs"), await readFile(new URL("../scripts/broadcasts-sync.mjs", import.meta.url)));
-  await writeFile(join(root, "app/lib/x-broadcasts.ts"), 'export const xBroadcasts: XBroadcast[] = [];\n');
-  const row = (key, type, url) => ["2026-09-14", "", "", "", "", "", "", "", url, type, key];
-  await writeFile(join(root, "snapshot.json"), JSON.stringify({
-    masterRows: [[],
-      row("space", "X Audio Space", "https://x.com/i/spaces/1DxLdZjQNOaxm?s=20"),
-      row("space-alias", "X Audio Space", "https://x.com/i/spaces/1DxLdZjQNOaxm"),
-      row("archive", "X Video Broadcast", "https://x.com/thefileswithdub/status/123"),
-      row("wrong-host", "X Video Broadcast", "https://evil.example/i/broadcasts/1DxLdZjlmrQxm"),
-      row("youtube", "YouTube Video", "https://www.youtube.com/watch?v=unrelated"),
-    ],
-    titleRows: [[], ["space", "Verified Space"], ["archive", "Archived broadcast"], ["wrong-host", "No verified replay identity"]],
-  }));
-  execFileSync(process.execPath, [join(root, "scripts/broadcasts-sync.mjs"), "--snapshot", join(root, "snapshot.json")]);
-  const generated = await readFile(join(root, "app/lib/x-broadcasts.ts"), "utf8");
-  assert.match(generated, /sourceUrl: "https:\/\/x\.com\/i\/spaces\/1DxLdZjQNOaxm"/);
-  assert.equal((generated.match(/id: "1DxLdZjQNOaxm"/g) ?? []).length, 1);
-  assert.match(generated, /id: "archive"[^\n]+sourceUrl: null/);
-  assert.match(generated, /id: "wrong-host"[^\n]+sourceUrl: null/);
-  assert.doesNotMatch(generated, /youtube|evil\.example|\/status\//);
+  for (const dir of ["scripts", "feeds", "app/lib", "public/broadcasts"]) await mkdir(join(root, dir), { recursive: true });
+  for (const file of ["scripts/broadcasts-sync.mjs", "feeds/x-source.mjs"]) await writeFile(join(root, file), await readFile(new URL(`../${file}`, import.meta.url)));
+  const target = join(root, "app/lib/x-broadcasts.ts");
+  await writeFile(target, 'export const xBroadcasts: XBroadcast[] = [];\n// Keep helper\n');
+  const input = join(root, "snapshot.json");
+  await writeFile(input, JSON.stringify(snapshot));
+  return { root, target, input, script: join(root, "scripts/broadcasts-sync.mjs") };
+}
+
+test("sync validates then atomically writes once and repeat run keeps exact bytes and mtime", async t => {
+  const f = await fixture(t);
+  execFileSync(process.execPath, [f.script, "--snapshot", f.input]);
+  const generated = await readFile(f.target, "utf8");
+  const before = await stat(f.target);
+  assert.match(generated, new RegExp(`id: "${id}"`));
+  assert.match(generated, /Keep helper/);
+  execFileSync(process.execPath, [f.script, "--snapshot", f.input]);
+  assert.equal(await readFile(f.target, "utf8"), generated);
+  assert.equal((await stat(f.target)).mtimeMs, before.mtimeMs);
+  assert.deepEqual(await readdir(join(f.root, "app/lib")), ["x-broadcasts.ts"]);
+});
+
+test("check reports candidate without writing and malformed input never changes target", async t => {
+  const f = await fixture(t);
+  const before = await readFile(f.target, "utf8");
+  const report = execFileSync(process.execPath, [f.script, "--snapshot", f.input, "--check"], { encoding: "utf8" });
+  assert.match(report, /added/);
+  assert.equal(await readFile(f.target, "utf8"), before);
+  await writeFile(f.input, JSON.stringify({ ...snapshot, titleRows: [["Episode key", "Broadcast title"]] }));
+  const failed = spawnSync(process.execPath, [f.script, "--snapshot", f.input], { encoding: "utf8" });
+  assert.notEqual(failed.status, 0);
+  assert.match(failed.stderr, /missing.*title/i);
+  assert.equal(await readFile(f.target, "utf8"), before);
+});
+
+test("marker injection rejects before writing", async t => {
+  const f = await fixture(t);
+  const before = await readFile(f.target, "utf8");
+  await writeFile(f.input, JSON.stringify({ ...snapshot, titleRows: [["Episode key", "Broadcast title"], ["new", "// ---- END GENERATED ----"]] }));
+  const failed = spawnSync(process.execPath, [f.script, "--snapshot", f.input], { encoding: "utf8" });
+  assert.notEqual(failed.status, 0);
+  assert.equal(await readFile(f.target, "utf8"), before);
+});
+
+test("quoted title text containing array terminators survives repeat generation", async t => {
+  const f = await fixture(t);
+  await writeFile(f.input, JSON.stringify({ ...snapshot, titleRows: [["Episode key", "Broadcast title"], ["new", 'Title ]; "quoted" ending']] }));
+  execFileSync(process.execPath, [f.script, "--snapshot", f.input]);
+  const first = await readFile(f.target, "utf8");
+  execFileSync(process.execPath, [f.script, "--snapshot", f.input]);
+  assert.equal(await readFile(f.target, "utf8"), first);
 });

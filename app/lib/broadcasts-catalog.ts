@@ -122,18 +122,22 @@ async function resolveOne(broadcast: XBroadcast): Promise<[string, string | null
  * resolvedAt records the last FULL resolution; incremental or no-op refreshes
  * must not postpone the Worker's six-hour full refresh indefinitely.
  */
-export async function resolveCatalog(existing?: HlsCatalog): Promise<HlsCatalog> {
+export async function resolveCatalog(existing?: HlsCatalog, fullRefresh = false): Promise<HlsCatalog> {
   const known = existing?.urls ?? {};
-  const pending = xBroadcasts.filter((broadcast) => broadcast.sourceUrl && (!Object.hasOwn(known, broadcast.id) || known[broadcast.id] === null));
+  const pending = xBroadcasts.filter((broadcast) => broadcast.sourceUrl && (fullRefresh || !Object.hasOwn(known, broadcast.id) || known[broadcast.id] === null));
   const urls: Record<string, string | null> = { ...known };
   for (const broadcast of xBroadcasts) {
     if (!broadcast.sourceUrl) urls[broadcast.id] = null;
   }
+  let failed = false;
   for (let i = 0; i < pending.length; i += FETCH_CONCURRENCY) {
     const chunk = await Promise.all(pending.slice(i, i + FETCH_CONCURRENCY).map(resolveOne));
-    for (const [id, url] of chunk) urls[id] = url;
+    for (const [id, url] of chunk) {
+      if (url === null) failed = true;
+      urls[id] = url ?? known[id] ?? null;
+    }
   }
-  return { resolvedAt: existing?.resolvedAt ?? Date.now(), urls };
+  return { resolvedAt: fullRefresh && !failed ? Date.now() : existing?.resolvedAt ?? Date.now(), urls };
 }
 
 /**

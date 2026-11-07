@@ -8,8 +8,10 @@ globalThis.fetch = (...args) => upstream(...args);
 // Execute the route source so protocol regressions cannot pass against a stale build.
 const moduleUrl = source => `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
 const httpUrl = moduleUrl(stripTypeScriptTypes(await readFile(new URL("../app/lib/http.ts", import.meta.url), "utf8")));
+const replayUrl = moduleUrl(await readFile(new URL("../feeds/replay-url.mjs", import.meta.url), "utf8"));
 const routeSource = stripTypeScriptTypes(await readFile(new URL("../app/api/x-media/route.ts", import.meta.url), "utf8"))
-  .replace('from "../../lib/http"', `from ${JSON.stringify(httpUrl)}`);
+  .replace('from "../../lib/http"', `from ${JSON.stringify(httpUrl)}`)
+  .replace('from "../../../feeds/replay-url.mjs"', `from ${JSON.stringify(replayUrl)}`);
 const { GET } = await import(moduleUrl(routeSource));
 const root = "https://prod-fastly-us-east-1.video.pscp.tv/Transcoding/v1/hls/native-test/";
 const manifest = "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=100000\nrendition/playlist.m3u8\n";
@@ -112,4 +114,28 @@ test("playlist retries still reject redirects outside the approved media hosts",
   assert.equal(calls, 2);
   assert.equal(response.status, 400);
   assert.equal(response.headers.get("cache-control"), "no-store");
+});
+
+test('master playlist CDN /a paths remain proxied through rendition and binary segment', async () => {
+  const prefix='/a/Transcoding/v1/hls/native-test/';
+  const master=`#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=100000\n${prefix}rendition/playlist.m3u8?type=replay\n`;
+  const rendition='#EXTM3U\n#EXTINF:3,\nsegment.ts\n';
+  const bytes=new Uint8Array([0x47,0x40,0,0]);
+  const calls=[];
+  upstream=async url=>{
+    const parsed=new URL(url);calls.push(parsed.pathname);
+    if(parsed.pathname.endsWith('master.m3u8'))return sourceResponse(url,master,200,{'content-type':'application/x-mpegurl'});
+    if(parsed.pathname.endsWith('playlist.m3u8'))return sourceResponse(url,rendition,200,{'content-type':'application/x-mpegurl'});
+    return sourceResponse(url,bytes,200,{'content-type':'video/mp2t'});
+  };
+  const first=await request('master.m3u8');
+  const child=(await first.text()).split('\n').find(line=>line&&!line.startsWith('#'));
+  assert.match(child,/^\/api\/x-media\?url=/);
+  const second=await GET(new Request('https://www.thefileswithdub.com'+child));
+  assert.equal(second.status,200);
+  const segment=(await second.text()).split('\n').find(line=>line&&!line.startsWith('#'));
+  assert.match(segment,/^\/api\/x-media\?url=/);
+  const last=await GET(new Request('https://www.thefileswithdub.com'+segment));
+  assert.deepEqual(new Uint8Array(await last.arrayBuffer()),bytes);
+  assert.deepEqual(calls,[new URL(root+'master.m3u8').pathname,prefix+'rendition/playlist.m3u8',prefix+'rendition/segment.ts']);
 });

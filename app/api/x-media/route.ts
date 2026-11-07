@@ -1,25 +1,9 @@
 import { fetchWithTimeout, readTextWithLimit } from "../../lib/http";
+import { approvedReplayUrl } from "../../../feeds/replay-url.mjs";
 
 const MAX_REPLAY_URL_LENGTH = 2_048;
 const MAX_RANGE_HEADER_LENGTH = 128;
 const MAX_MANIFEST_BYTES = 8 * 1024 * 1024;
-const APPROVED_REPLAY_SUFFIX = ".video.pscp.tv";
-const APPROVED_REPLAY_HOST = /^[a-z0-9-]+\.video\.pscp\.tv$/;
-
-function approvedReplayUrl(value: string | null): URL | null {
-  if (!value || value.length > MAX_REPLAY_URL_LENGTH) return null;
-  try {
-    const url = new URL(value);
-    const hostname = url.hostname.toLowerCase();
-    if (url.protocol !== "https:") return null;
-    if (!hostname.endsWith(APPROVED_REPLAY_SUFFIX) || !APPROVED_REPLAY_HOST.test(hostname)) return null;
-    if (url.username || url.password || url.port || url.hash) return null;
-    if (!url.pathname.startsWith("/Transcoding/v1/hls/")) return null;
-    return url;
-  } catch {
-    return null;
-  }
-}
 
 function proxyUrl(url: URL) {
   return `/api/x-media?url=${encodeURIComponent(url.toString())}`;

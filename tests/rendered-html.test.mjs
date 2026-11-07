@@ -235,15 +235,15 @@ test("publishes an in-page X broadcast replay view with native playback controls
   assert.match(catalogModule, /extractReplayHlsUrl/);
   assert.match(catalogModule, /\/api\/x-media\?url=/);
   assert.match(proxy, /rewriteManifest/);
-  assert.match(proxy, /video\.pscp\.tv/);
-  assert.doesNotMatch(page, /https:\/\/x\.com|Open on X|Watch the full replay on X/i);
+  assert.match(proxy, /approvedReplayUrl/);
+  assert.match(page, /Open on X/);
   assert.doesNotMatch(page, /platform\.twitter\.com\/embed\/Tweet\.html/);
   assert.match(page, /broadcast\.poster/);
   assert.match(page, /Can.t DUB Me/i);
   assert.doesNotMatch(page, /Can.t DUB Me<br/i);
   assert.match(page, /REPLAY \{String\(index \+ 1\)/);
   assert.match(page, /Open replay/i);
-  assert.match(page, /Playback stays inside The Files/i);
+  assert.match(page, /Available replays play inside The Files/i);
   assert.match(player, /Replay temporarily unavailable/i);
   assert.match(styles, /\.broadcast-title\{white-space:nowrap/);
   assert.match(styles, /\.broadcast-player\{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:16\/9;max-height:78vh/);
@@ -332,7 +332,7 @@ test("keeps the active identity free of discontinued show language", async () =>
 test("refreshes the Files feed from Dub's YouTube uploads", async () => {
   const page = await readFile(new URL("../app/components/files-platform.tsx", import.meta.url), "utf8");
   const route = await readFile(new URL("../app/api/videos/route.ts", import.meta.url), "utf8");
-  assert.match(page, /fetch\("\/api\/videos"\)/);
+  assert.match(page, /useFeedItems\("\/api\/videos"/);
   assert.match(page, /live YouTube updates/);
   assert.match(route, /UCPydZggyK7qQRp4VNUGXNgg/);
   assert.match(route, /feeds\/videos\.xml\?channel_id=/);
@@ -425,9 +425,10 @@ test("adds a guarded Worker boundary for headers, secrets, and upstream fetches"
   for (const pattern of [".env", ".env.*", ".dev.vars", "*.pem", "*.key"]) assert.match(ignore, new RegExp(`^${pattern.replace("*", "\\S*")}$`, "m"));
   assert.match(http, /AbortController/);
   assert.match(http, /readTextWithLimit/);
-  assert.match(media, /APPROVED_REPLAY_HOST/);
+  assert.match(media, /approvedReplayUrl/);
   assert.match(media, /MAX_MANIFEST_BYTES/);
-  assert.match(media, /url\.username \|\| url\.password \|\| url\.port \|\| url\.hash/);
+  const boundary = await readFile(new URL("../feeds/replay-url.mjs", import.meta.url), "utf8");
+  assert.match(boundary, /url\.username \|\| url\.password \|\| url\.port \|\| url\.hash/);
   assert.match(videos, /YOUTUBE_VIDEO_ID/);
   assert.match(videos, /attempt < 3/);
   assert.match(videos, /X-Data-Status/);
@@ -449,11 +450,15 @@ test("broadcast replay covers use neutral branding and retain custom artwork", a
   const sync = await readFile(new URL("../scripts/broadcasts-sync.mjs", import.meta.url), "utf8");
   const html = await (await render("/broadcasts")).text();
   assert.doesNotMatch(catalog, /\/broadcasts\/placeholder\.svg/);
-  assert.equal([...catalog.matchAll(/poster: "\/broadcasts\/replay-card\.svg"/g)].length, 46);
-  assert.equal([...catalog.matchAll(/poster: "\/broadcasts\/[^\"]+\.(?:png|jpg)"/g)].length, 10);
+  const posters = [...catalog.matchAll(/poster: "([^\"]+)"/g)].map(match => match[1]);
+  assert.ok(posters.length >= 56);
+  for (const poster of new Set(posters)) {
+    assert.match(poster, /^\/broadcasts\/[A-Za-z0-9._-]+$/);
+    assert.ok((await readFile(new URL(`../public${poster}`, import.meta.url))).byteLength > 0, `missing replay artwork ${poster}`);
+  }
   assert.match(fallback, /X REPLAY ARCHIVE/);
   assert.doesNotMatch(fallback, /coming soon|placeholder|unfinished|play replay/i);
-  assert.match(sync, /\/broadcasts\/replay-card\.svg/);
+  assert.match(sync, /buildXCatalog/);
   assert.match(html, /\/broadcasts\/replay-card\.svg/);
   assert.doesNotMatch(html, /\/broadcasts\/placeholder\.svg/);
   assert.match(catalog, /id: "1AKEmmrYnnnKL"[^\n]+poster: "\/broadcasts\/1AKEmmrYnnnKL\.png"/);

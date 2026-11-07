@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "thefileswithdub-feeds-unrouted",
+  "account_id": "ea7a77735549fff1fba3e54e742e6e7b",
+  "main": "coordinator/index.ts",
+  "compatibility_date": "2026-09-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "FEED_REFRESH_ENABLED": "false",
+    "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "FEED_STORE", "class_name": "FeedStore" }]
+  },
+  "migrations": [{ "tag": "feed-store-v1", "new_sqlite_classes": ["FeedStore"] }],
+  "env": {
+    "preview": {
+      "name": "thefileswithdub-feeds-preview",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "FEED_REFRESH_ENABLED": "false",
+        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
+      },
+      "durable_objects": {
+        "bindings": [{ "name": "FEED_STORE", "class_name": "FeedStore" }]
+      },
+      "triggers": { "crons": ["1-59/10 * * * *", "*/5 * * * *"] }
+    },
+    "production": {
+      "name": "thefileswithdub-feeds",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "FEED_REFRESH_ENABLED": "false",
+        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
+      },
+      "durable_objects": {
+        "bindings": [{ "name": "FEED_STORE", "class_name": "FeedStore" }]
+      },
+      "triggers": { "crons": ["1-59/10 * * * *", "*/5 * * * *"] }
+    }
+  },
+  "observability": {
+    "enabled": true,
+    "redact_query_string": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.1 }
+  }
+}

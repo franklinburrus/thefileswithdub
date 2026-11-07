@@ -96,3 +96,5 @@
 .broadcast-viewer{scroll-margin-bottom:16px}
 @media(max-width:900px){.broadcast-list{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.broadcast-title{white-space:normal;font-size:clamp(2.7rem,14vw,4.5rem)}.broadcast-toolbar{align-items:flex-start;flex-direction:column}.broadcast-source-state{margin-top:2px}.broadcast-player{aspect-ratio:16/10}.broadcast-list{grid-template-columns:1fr}}
 @media(max-width:520px){.amazon-product-grid{grid-template-columns:1fr}.amazon-product-image{aspect-ratio:1.18/1}.amazon-storefront-footer .solid{width:100%;text-align:center}}
+
+.broadcast-card{overflow:hidden;border:1px solid rgba(17,17,17,.18);background:#f4f0e9;padding-bottom:20px}.broadcast-card>button{width:100%;height:100%;border:0;padding-bottom:0}.broadcast-card>a,.broadcast-card>p{margin:0 18px}.broadcast-card>img{width:100%;height:auto}
