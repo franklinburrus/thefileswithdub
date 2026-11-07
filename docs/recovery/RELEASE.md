@@ -6,14 +6,15 @@ Website Worker `thefileswithdub`, account `ea7a77735549fff1fba3e54e742e6e7b`, ro
 
 ## Preconditions
 
-Run `npm run verify`. Review the source reconciliation, provider failures, credentials and cache tests. Confirm Cloudflare entitlement or obtain approval before activating a paid dependency. Existing subscription/remaining allowance reads returned403. Historical telemetry reads returned403, so inspect a permitted live tail or restore log-read access for release evidence. Confirm native mobile playback in addition to desktop proof.
+Run `npm run verify`. Review the source reconciliation, provider failures, credentials and cache tests. Confirm Cloudflare entitlement or obtain approval before activating a paid dependency. Signed-in dashboard review confirmed the existing Workers Paid plan and unused Durable Objects allowances. The API-only subscription read returned403. Historical telemetry reads returned403, so inspect a permitted live tail or restore log-read access for release evidence. Confirm native mobile playback in addition to desktop proof.
 
 ## Stage preview
 
 1. Run `wrangler deploy --config wrangler.feeds.jsonc --env preview --dry-run`. Confirm private ingress, preview service name and new preview-only SQLite namespace. Deploy that coordinator only after entitlement approval or verified included allowance. Its scheduled refresh remains disabled.
 2. Start a loopback bootstrap relay with `wrangler dev --config wrangler.feed-bootstrap.jsonc --env preview --ip 127.0.0.1 --port 8790`. The relay uses a remote service binding. Execute `curl --fail -X POST -H 'X-Dub-Operator: bootstrap' http://127.0.0.1:8790/bootstrap`. Stop the relay after successful readback.
 3. Build with `CLOUDFLARE_ENV=preview npm run build`. Inspect generated `dist/server/wrangler.json` for the preview Worker, preview coordinator service, no production KV and no production route. Deploy this generated configuration. Record exact commit, lockfile/bundle hashes and both Worker versions.
-4. Test Home, `/broadcasts`, `/files`, `/api/x-broadcasts`, `/api/videos`, `/api/feed-health`, external-only Space links, actual media advancement and seeking on desktop/native mobile. Exercise a controlled source addition, invalid source and repeat run against isolated preview fixtures. Confirm120-second publication visibility, outage preservation and recovery. Never inject failure rows into the live Master Link List.
+4. The preview coordinator reads the labeled fixture spreadsheet configured in `env.preview.vars.CLIP_LIBRARY_SHEET_ID`. It contains only public catalog fields. Use its row81 for controlled valid/invalid/repeated source tests. Production omits that override and reads the original Master Link List.
+5. Test Home, `/broadcasts`, `/files`, `/api/x-broadcasts`, `/api/videos`, `/api/feed-health`, external-only Space links, actual media advancement and seeking on desktop/native mobile. Exercise a controlled source addition, invalid source and repeat run against isolated preview fixtures. Confirm120-second publication visibility, outage preservation and recovery. Never inject failure rows into the live Master Link List.
 
 ## Stage production and cut over
 

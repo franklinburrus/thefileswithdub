@@ -9,6 +9,7 @@ interface FeedEnv {
   FEED_REFRESH_ENABLED: string;
   YOUTUBE_DATA_API_FALLBACK_ENABLED: string;
   YOUTUBE_DATA_API_KEY?: string;
+  CLIP_LIBRARY_SHEET_ID?: string;
 }
 
 /** Separate named objects own the X and YouTube snapshots. */

@@ -23,6 +23,7 @@
       "preview_urls": false,
       "routes": [],
       "vars": {
+        "CLIP_LIBRARY_SHEET_ID": "1qaQs7nVjtTaolAxaNMJF708qKW-k_79jA-d370zZwtk",
         "FEED_REFRESH_ENABLED": "false",
         "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
       },
