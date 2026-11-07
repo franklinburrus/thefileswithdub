@@ -17,9 +17,26 @@ function environment() {
 test('private coordinator routes read-only snapshots and health to independent objects', async () => {
   const { env, calls } = environment();
   const response = await coordinatorFetch(new Request('https://internal/health'), env);
-  assert.deepEqual(await response.json(), { x: { state: 'uninitialized' }, youtube: { state: 'uninitialized' } });
+  assert.deepEqual(await response.json(), { status: 'degraded', x: { state: 'uninitialized' }, youtube: { state: 'uninitialized' } });
   assert.deepEqual(calls, [['read', 'x'], ['read', 'youtube']]);
   assert.equal((await coordinatorFetch(new Request('https://internal/x'), env)).status, 200);
+});
+
+test('overall health requires successful current ingestion and playback for both feeds', async () => {
+  const health = {
+    x: { state: 'healthy', metadata: { state: 'healthy' }, playback: { state: 'healthy' } },
+    youtube: { state: 'healthy' },
+  };
+  const env = { FEED_STORE: { getByName: name => ({ read: async () => ({ health: health[name] }) }) } };
+  const read = async () => (await coordinatorFetch(new Request('https://internal/health'), env)).json();
+  assert.equal((await read()).status, 'healthy');
+  health.x.playback.state = 'degraded';
+  assert.equal((await read()).status, 'degraded');
+  health.x.playback.state = 'healthy';
+  health.youtube.state = 'degraded';
+  assert.equal((await read()).status, 'degraded');
+  health.youtube.state = 'healthy';
+  assert.equal((await read()).status, 'healthy');
 });
 
 test('private warming requires POST and works while scheduled jobs remain paused', async () => {

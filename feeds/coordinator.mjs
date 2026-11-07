@@ -13,7 +13,8 @@ export async function coordinatorFetch(request, env) {
   if (path === '/health') {
     if (request.method !== 'GET') return json({ error: 'method-not-allowed' }, 405);
     const [x, youtube] = await Promise.all(['x', 'youtube'].map(name => env.FEED_STORE.getByName(name).read(name)));
-    return json({ x: x.health, youtube: youtube.health });
+    const healthy = [x.health.metadata, x.health.playback, youtube.health].every(lane => lane?.state === 'healthy');
+    return json({ status: healthy ? 'healthy' : 'degraded', x: x.health, youtube: youtube.health });
   }
   const manualLane = { '/refresh/metadata': ['x', 'metadata'], '/refresh/playback': ['x', 'playback'], '/refresh/youtube': ['youtube', 'youtube'] }[path];
   if (manualLane) {

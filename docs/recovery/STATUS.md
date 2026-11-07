@@ -1,6 +1,10 @@
 # The Files with Dub recovery — 2026-11-07
 
-PARTIALLY COMPLETE. Implementation and source reconciliation are committed as a release candidate after local verification. Remote preview and production release await the gates below.
+The original coordinated release is COMPLETE at commit `c14e1ad4527a8920369a1bacedc68008cbe8987c`. Production website version `817071e4-689b-4025-a258-98b2df529f09` and coordinator version `73eba062-14a4-4226-9baa-be06845617d1` passed public acceptance and all three first scheduled runs. The external `RECOVERY-WORKSPACE.json` contains the final readback and source evidence.
+
+Frank authorized a follow-up to retire the three confirmed 404 listings and complete open-source alert configuration and delivery testing. The shared validator now retires exactly `1DxLddryWQPxm`, `1jGXggZlkdVKZ` and `1YxNrrOVnryxw`. Live regeneration produces 77 active records, retains every other verified identity and leaves worksheet originals intact. Repeat generation is unchanged. The health API adds an overall status derived from current X metadata, X playback and YouTube lane health. Alert monitoring uses pinned MIT Upptime in the separate `franklinburrus/thefileswithdub-status` repository, with GitHub notifications assigned to Frank. Follow-up release acceptance is recorded in the existing external checkpoint.
+
+The dated implementation and staging evidence below is historical. Its pending gates were resolved by the original release above.
 
 ## Mission and authority
 

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildXCatalog, parseCsv, parseXSource } from "../feeds/x-source.mjs";
 
@@ -71,4 +72,46 @@ test("unidentified derivative rows are skipped and blank-source aliases attach t
 
 test("normalized traversal and control characters cannot create a canonical source", () => {
   for (const url of [`https://x.com/foo/../i/broadcasts/${newId}`, `https://x.com/i/broadcasts/${newId}\n`, `https://x.com/i/broadcasts/${newId}?x=\n`]) assert.equal(parseXSource(url), null);
+});
+
+const retiredIds = ['1DxLddryWQPxm', '1jGXggZlkdVKZ', '1YxNrrOVnryxw'];
+const retiredItems = retiredIds.map((id, index) => ({ ...oldItem, id, title: `Retired replay ${index + 1}`, sourceUrl: source(id) }));
+
+test('retires exactly the three approved dead replays while preserving all other metadata and source rows', () => {
+  const baseline = [oldItem, ...retiredItems];
+  const rows = master(...baseline.map(item => [item.date, 'X Video Broadcast', item.sourceUrl, item.id]));
+  const titleRows = titles(...baseline.map(item => [item.id, item.title, item.date]));
+  const originalRows = structuredClone({ rows, titleRows });
+  const result = buildXCatalog(rows, titleRows, baseline);
+  assert.deepEqual(result.items, [oldItem]);
+  assert.deepEqual(result.diff, { added: [], changed: [], removed: retiredIds });
+  assert.deepEqual({ rows, titleRows }, originalRows);
+});
+
+test('retired replays cannot reappear from unchanged source rows on repeat sync', () => {
+  const rows = master(...[oldItem, ...retiredItems].map(item => [item.date, 'X Video Broadcast', item.sourceUrl, item.id]));
+  const titleRows = titles(...[oldItem, ...retiredItems].map(item => [item.id, item.title, item.date]));
+  const first = buildXCatalog(rows, titleRows, [oldItem, ...retiredItems]);
+  const repeated = buildXCatalog(rows, titleRows, first.items);
+  assert.deepEqual(repeated.items, [oldItem]);
+  assert.deepEqual(repeated.diff, { added: [], changed: [], removed: [] });
+});
+
+test('approved retirement permits absent dead source rows and still rejects every unrelated baseline loss', () => {
+  const survivorRows = master([oldItem.date, 'X Video Broadcast', oldItem.sourceUrl, oldItem.id]);
+  const result = buildXCatalog(survivorRows, titles(), [oldItem, ...retiredItems]);
+  assert.deepEqual(result.items, [oldItem]);
+  assert.deepEqual(result.diff.removed, retiredIds);
+  const unrelated = { ...oldItem, id: newId, sourceUrl: source(newId) };
+  assert.throws(() => buildXCatalog(survivorRows, titles(), [oldItem, ...retiredItems, unrelated]), /catalog shrink/);
+  assert.throws(() => buildXCatalog(master(...retiredItems.map(item => [item.date, 'X Video Broadcast', item.sourceUrl, item.id])), titles(), retiredItems), /empty|eligible/i);
+});
+
+test('bundled catalog excludes retired replays and includes the verified latest source identities once', async () => {
+  const source = await readFile(new URL('../app/lib/x-broadcasts.ts', import.meta.url), 'utf8');
+  const generated = source.match(/export const xBroadcasts:[\s\S]*?\n\];/)[0];
+  const ids = [...generated.matchAll(/\bid: "([^"]+)"/g)].map(match => match[1]);
+  assert.equal(ids.length, new Set(ids).size);
+  for (const id of retiredIds) assert.equal(ids.includes(id), false, id);
+  for (const id of [oldId, newId, '2zkAnlRLKZvymP']) assert.equal(ids.filter(candidate => candidate === id).length, 1, id);
 });

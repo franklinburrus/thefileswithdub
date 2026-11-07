@@ -168,3 +168,35 @@ test('playback preserves per-source resolution age across partial failures witho
   assert.ok(after.health.playback.resolutions[x.id].lastAttemptAt > oldSuccess);
   assert.equal(after.health.playback.resolutions[x.id].errorCategory, 'upstream-429');
 });
+
+test('playback results captured before retirement cannot restore a removed identity', async () => {
+  const dead = { ...x, id: '1DxLddryWQPxm', sourceUrl: 'https://x.com/i/broadcasts/1DxLddryWQPxm' };
+  const repo = new FeedRepository(new AtomicMemory(), 'x', [x, dead]);
+  const pending = await repo.begin('playback');
+  const metadata = await repo.begin('metadata');
+  await repo.acceptMetadata(metadata.generation, [x]);
+  const retired = await repo.read();
+  await repo.acceptPlayback(pending.generation, [{ id: dead.id, sourceUrl: dead.sourceUrl, hlsUrl: hls }]);
+  const after = await repo.read();
+  assert.deepEqual(after.broadcasts.map(item => item.id), [x.id]);
+  assert.equal(after.version, retired.version);
+  assert.equal(after.health.playback.resolutions[dead.id], undefined);
+});
+
+test('a successful playback refresh after retirement clears the previous dead-source failure', async () => {
+  const dead = { ...x, id: '1jGXggZlkdVKZ', sourceUrl: 'https://x.com/i/broadcasts/1jGXggZlkdVKZ' };
+  const repo = new FeedRepository(new AtomicMemory(), 'x', [x, dead]);
+  let playback = await repo.begin('playback');
+  await repo.acceptPlayback(playback.generation, [{ id: x.id, sourceUrl: x.sourceUrl, hlsUrl: hls }, { id: dead.id, sourceUrl: dead.sourceUrl, errorCategory: 'upstream-404' }]);
+  assert.equal((await repo.read()).health.playback.state, 'degraded');
+  const metadata = await repo.begin('metadata');
+  await repo.acceptMetadata(metadata.generation, [x]);
+  playback = await repo.begin('playback');
+  await repo.acceptPlayback(playback.generation, [{ id: x.id, sourceUrl: x.sourceUrl, hlsUrl: hls }]);
+  const after = await repo.read();
+  assert.equal(after.health.playback.state, 'healthy');
+  assert.equal(after.health.playback.errorCategory, null);
+  assert.equal(after.health.playback.consecutiveFailures, 0);
+  assert.equal(after.health.playback.resolutions[dead.id], undefined);
+  assert.equal(after.health.state, 'healthy');
+});

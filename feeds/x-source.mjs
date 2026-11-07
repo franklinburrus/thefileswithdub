@@ -2,6 +2,9 @@
 const PLACEHOLDER_POSTER = "/broadcasts/replay-card.svg";
 const MAX_CSV_BYTES = 4 * 1024 * 1024;
 const MAX_ROWS = 100000;
+// Frank retired these three confirmed 404 replays on 2026-11-07.
+// Keep their worksheet records intact while excluding them from site catalogs.
+const RETIRED_IDS = new Set(["1DxLddryWQPxm", "1jGXggZlkdVKZ", "1YxNrrOVnryxw"]);
 
 /** Parse bounded RFC 4180 CSV, retaining quoted newlines and escaped quotes.
  * @param {string} text
@@ -158,6 +161,7 @@ export function buildXCatalog(masterRows, titleRows, baseline = []) {
   const provenance = Object.create(null);
   const items = [];
   for (const group of groups.values()) {
+    if (RETIRED_IDS.has(group.id)) continue;
     const verifiedTitles = new Set();
     const verifiedDates = new Set();
     const titleRefs = [];
@@ -185,11 +189,12 @@ export function buildXCatalog(masterRows, titleRows, baseline = []) {
   }
   const present = new Set(items.map(item => item.id));
   for (const item of baseline) {
-    if (present.has(item.id)) continue;
+    if (present.has(item.id) || RETIRED_IDS.has(item.id)) continue;
     if (item.sourceUrl !== null) throw new Error(`Baseline identity missing from source (catalog shrink): ${item.id}`);
     items.push({ ...item });
     provenance[item.id] = { masterRows: [], titleRows: [], aliases: [item.id], retained: true };
   }
+  if (!items.length) throw new Error("Empty eligible X catalog");
   items.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   const fields = ["id", "title", "poster", "date", "sourceUrl"];
   return {
@@ -197,7 +202,7 @@ export function buildXCatalog(masterRows, titleRows, baseline = []) {
     diff: {
       added: items.filter(item => !accepted.has(item.id)).map(item => item.id),
       changed: items.filter(item => accepted.has(item.id) && fields.some(field => item[field] !== accepted.get(item.id)[field])).map(item => item.id),
-      removed: [],
+      removed: baseline.filter(item => RETIRED_IDS.has(item.id)).map(item => item.id),
     },
     provenance,
   };

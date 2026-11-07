@@ -1,5 +1,11 @@
 # Coordinated release procedure
 
+## Follow-up acceptance
+
+The three explicit 404 retirements are the only approved removals from the 80-entry published source snapshot. Expect 77 active records and unchanged surviving metadata. Verify retired IDs remain absent after repeat ingestion and playback refresh. The additive `/api/feed-health` field `status` is `healthy` only when X metadata, X playback and YouTube are all healthy. The MIT Upptime monitor in `franklinburrus/thefileswithdub-status` requires this marker and HTTP 200, then assigns incident notifications to `franklinburrus`. Its controlled delivery test changes only the monitor's requested URL to a known 404, followed by recovery to the real health endpoint. Preserve the test issue and notification readbacks.
+
+Player and replay-proxy sources are unchanged by this data/health follow-up. Existing phone/Chrome acceptance for October 29 and November 5 may be carried forward with the original accepted commit, preview version and unchanged source hashes recorded in the external receipt. Run fresh desktop playback against the new preview and production snapshots. Reopen native acceptance if player/proxy code or either accepted replay's source changes.
+
 ## Recorded baseline
 
 Website Worker `thefileswithdub`, account `ea7a77735549fff1fba3e54e742e6e7b`, route `www.thefileswithdub.com/*`. Active deployment `eb7d4812-117b-4ea3-bac9-e0313e8bd38a`, version112 `06fbc414-4b3f-4ab7-8152-26c447347c0d` at100%. Original `BROADCASTS_KV` namespace `b6d04834005e47f09602c7a671915747`, cron `*/10 * * * *`. Recheck immediately before release. Full redacted captures and original-source evidence are in the task's external recovery directory, with checksums.
