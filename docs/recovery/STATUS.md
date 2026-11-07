@@ -42,3 +42,12 @@ Next gates are controlled source publication/failure/repeat proofs in the isolat
 - Added private staging warm-up because disabled schedules otherwise produced an empty YouTube feed and unplayable X seed at cutover. Loopback operator checks prevent browser-origin refresh requests.
 
 - Added deployment-controlled CLIP_LIBRARY_SHEET_ID using the existing CLI naming pattern so remote preview source tests can use an isolated worksheet. IDs are validated before requests; Google origin and tab gids remain fixed. The production configuration selects the original Master Sheet.
+
+
+## Deployment incident and verified restoration
+
+At2026-11-07 18:00:28UTC, a manual preview retag used generated output that verification had overwritten with default configuration. It activated production version36bf5b85-ac05-4f5c-9280-39ff3495423d before release acceptance. The agent restored version06fbc414-4b3f-4ab7-8152-26c447347c0d at100% at18:01:55UTC, rollback deploymentf261fa1c-c97e-4f38-b71c-ec63144d8860. Active-version resources confirmed originalKV, the original route and schedule matched, and fresh public reads returned56X/15YouTube. Traffic impact during the approximately87-second window was not measured.
+
+Preventive control: use scripts/deploy-website.mjs for all website uploads. It requires explicit environment, verifies/builds with that environment, freezes the complete artifact tree, rejects changing dist, validates worker/account/service/KV/routes and both DO lifecycle representations, and pins the CLI target name. Production also requires native acceptance in the existing external task record, bound to current candidate commit and a preview version. Direct uploads from mutable dist are prohibited in this release procedure.
+
+Remote source QA passed on the isolated fixture: a scheduled new row appeared once within116seconds, an invalid source retained the accepted80-entry catalog/version, and two repeats after recovery preserved the version and cleared ingestion failures. The preview contains79 real entries plus1 explicitly labeled synthetic fixture. Production's source catalog remains79 real entries. Preview ingestion schedules were paused after QA. Native mobile confirmation is pending.

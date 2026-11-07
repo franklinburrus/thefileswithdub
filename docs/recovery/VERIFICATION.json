@@ -569,5 +569,13 @@
     "package-lock.json": "d0616618f257d711c44843a5e0ab1654c982133080a547ea0b85ab2a9fabf851",
     "dist/server/index.js": "436d423421b435e30e56f8caaeeb728e5a0c245e53507310b5a1f1b1aece3864",
     ".wrangler/qa/coordinator-preview/index.js": "4a2034c6b29085c0d1f84370dca51933819b3e6ee5ce81fb703c5450575ba73b"
+  },
+  "deploymentSafety": {
+    "incidentVersion": "36bf5b85-ac05-4f5c-9280-39ff3495423d",
+    "restoredProductionVersion": "06fbc414-4b3f-4ab7-8152-26c447347c0d",
+    "rollbackDeployment": "f261fa1c-c97e-4f38-b71c-ec63144d8860",
+    "publicRestorationVerified": true,
+    "guardEntrypoint": "scripts/deploy-website.mjs",
+    "nativeAcceptancePending": true
   }
 }
