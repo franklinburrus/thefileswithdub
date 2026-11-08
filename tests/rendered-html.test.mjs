@@ -16,6 +16,7 @@ test("server-renders The Files With Dub media platform", async () => {
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
+  assert.match(html, /<title>Culture, Commentary &amp; Media \| The Files With Dub<\/title>/);
   assert.match(html, /The Files With Dub/i);
   assert.match(html, /THE CULTURE/i);
   assert.match(html, /BOOK THE STUDIO/i);

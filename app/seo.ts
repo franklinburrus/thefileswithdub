@@ -37,7 +37,7 @@ export function metadataFor(key: PublicSeoRoute): Metadata {
   const url = `${SITE_URL}${route.path === "/" ? "" : route.path}`;
 
   return {
-    title: route.title,
+    title: { absolute: `${route.title} | ${SITE_NAME}` },
     description: route.description,
     alternates: { canonical: url },
     openGraph: {

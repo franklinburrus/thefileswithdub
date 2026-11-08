@@ -99,4 +99,8 @@ Every baseline open alert is mapped below. A dependency declaration alone does n
 
 ## Verification and release state
 
-Implementation is in progress. Full check results, exact candidate commit, preview version, playback evidence and release disposition are recorded after verification. Clean audit evidence is stored outside Git under `.wrangler/security`. No credential values belong in these records.
+Clean `npm ci`, `npm ls --all`, lint, type checking, build and all 155 tests passed. The count increased from 149 through six image/action/OG/parser/ZIP tests. Two existing image lint warnings remain. Fresh npm audit reports zero vulnerabilities at every severity. An independent review found no critical, important or minor issues. Evidence is stored outside Git under `.wrangler/security`.
+
+Preview testing found a homepage title compatibility change because the root layout title template no longer applies to the same-segment page. `metadataFor` now supplies absolute branded titles, preserving prior public titles. The homepage regression assertion failed before this fix and passed after it, with all 155 tests passing.
+
+Production remains gated on preview acceptance and fresh candidate-specific native-mobile playback. Record exact commit, versions and acceptance in the existing external checkpoint before release. No credential values belong in these records.
