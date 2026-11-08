@@ -24,7 +24,7 @@ test('YouTube rejects wrong-channel, empty, malformed and duplicate candidates',
 
 test('YouTube retries thrown network errors as well as HTTP errors', async () => {
   let count = 0;
-  const videos = await fetchYoutubeVideos(async () => {
+  const { videos } = await fetchYoutubeVideos(async () => {
     count += 1;
     if (count === 1) throw new TypeError('Network failed');
     if (count === 2) return new Response('', { status: 404 });
@@ -99,16 +99,25 @@ test('resolved HLS URLs must satisfy the website proxy path and origin boundary'
 });
 
 test('opt-in Data API fallback sends the key in a header without URL or error disclosure', async () => {
-  const secret='fixture-key-keep-out-of-urls';
-  let apiCalls=0;
-  const videos=await fetchYoutubeVideos(async (input,init)=>{
-    const url=new URL(input);
-    assert.equal(url.href.includes(secret),false);
-    if(url.hostname==='www.youtube.com') return new Response('unavailable',{status:404});
+  const secret = 'fixture-key-keep-out-of-urls';
+  let apiCalls = 0;
+  const { videos } = await fetchYoutubeVideos(async (input, init) => {
+    const url = new URL(input);
+    assert.equal(url.href.includes(secret), false);
+    if (url.hostname === 'www.youtube.com') return new Response('unavailable', { status: 404 });
     apiCalls++;
-    assert.equal(new Headers(init.headers).get('X-Goog-Api-Key'),secret);
-    return Response.json({items:[{snippet:{title:'API upload',videoOwnerChannelId:CHANNEL_ID},contentDetails:{videoId:'ysb4ulbDmZ0',videoPublishedAt:'2026-11-06T20:30:28Z'}}]});
-  },{YOUTUBE_DATA_API_FALLBACK_ENABLED:'true',YOUTUBE_DATA_API_KEY:secret});
-  assert.equal(apiCalls,1);
-  assert.equal(videos[0].videoId,'ysb4ulbDmZ0');
+    assert.equal(new Headers(init.headers).get('X-Goog-Api-Key'), secret);
+    if (url.pathname.endsWith('/playlistItems')) return Response.json({ kind: 'youtube#playlistItemListResponse', items: [{
+      kind: 'youtube#playlistItem',
+      snippet: { channelId: CHANNEL_ID, playlistId: `UU${CHANNEL_ID.slice(2)}`, videoOwnerChannelId: CHANNEL_ID, resourceId: { kind: 'youtube#video', videoId: 'ysb4ulbDmZ0' } },
+      contentDetails: { videoId: 'ysb4ulbDmZ0' },
+    }] });
+    return Response.json({ kind: 'youtube#videoListResponse', items: [{
+      kind: 'youtube#video', id: 'ysb4ulbDmZ0',
+      snippet: { channelId: CHANNEL_ID, title: 'API upload', publishedAt: '2026-11-06T20:30:28Z' },
+      status: { privacyStatus: 'public', uploadStatus: 'processed' },
+    }] });
+  }, { YOUTUBE_DATA_API_FALLBACK_ENABLED: 'true', YOUTUBE_DATA_API_KEY: secret });
+  assert.equal(apiCalls, 2);
+  assert.equal(videos[0].videoId, 'ysb4ulbDmZ0');
 });

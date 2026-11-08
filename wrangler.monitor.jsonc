@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "thefileswithdub-monitor-trigger-unrouted",
+  "account_id": "ea7a77735549fff1fba3e54e742e6e7b",
+  "main": "monitor/index.ts",
+  "compatibility_date": "2026-09-12",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": { "MONITOR_MODE": "preview", "MONITOR_ENABLED": "false" },
+  "secrets": { "required": ["UPPTIME_DISPATCH_TOKEN"] },
+  "env": {
+    "preview": {
+      "name": "thefileswithdub-monitor-trigger-preview",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": { "MONITOR_MODE": "preview", "MONITOR_ENABLED": "false" },
+      "secrets": { "required": ["UPPTIME_DISPATCH_TOKEN"] },
+      "triggers": { "crons": ["2-59/5 * * * *"] }
+    },
+    "production": {
+      "name": "thefileswithdub-monitor-trigger",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": { "MONITOR_MODE": "production", "MONITOR_ENABLED": "true" },
+      "secrets": { "required": ["UPPTIME_DISPATCH_TOKEN"] },
+      "triggers": { "crons": ["2-59/5 * * * *"] }
+    }
+  },
+  "observability": {
+    "enabled": true,
+    "redact_query_string": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.1 }
+  }
+}

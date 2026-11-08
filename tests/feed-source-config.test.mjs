@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { FeedRepository } from '../feeds/store.mjs';
 import { refreshFeed } from '../feeds/jobs.mjs';
+import { coordinatorScheduled } from '../feeds/coordinator.mjs';
+import { readFile } from 'node:fs/promises';
 
 const baseline = {
   id: '1oKMvNPnEzDGQ',
@@ -50,4 +52,17 @@ test('invalid configured worksheet identity fails closed before network access',
   assert.equal(result.accepted, false);
   assert.equal(calls, 0);
   assert.equal((await repo.read()).version, before.version);
+});
+
+test('committed production schedules dispatch both feed owners while preview stays paused', async () => {
+  const config = JSON.parse(await readFile(new URL('../wrangler.feeds.jsonc', import.meta.url), 'utf8'));
+  for (const name of ['preview', 'production']) {
+    const selected = config.env[name];
+    const calls = [];
+    const env = { ...selected.vars, FEED_STORE: { getByName: feed => ({
+      refresh: async (_feed, lane) => { calls.push([feed, lane]); return { accepted: true }; },
+    }) } };
+    for (const cron of selected.triggers.crons) await coordinatorScheduled({ cron }, env);
+    assert.deepEqual(calls, name === 'production' ? [['x', 'metadata'], ['youtube', 'youtube']] : []);
+  }
 });

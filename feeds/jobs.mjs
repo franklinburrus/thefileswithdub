@@ -10,6 +10,7 @@ export async function refreshFeed(repository, lane, env, fetcher = fetch) {
   const attempt = await repository.begin(lane);
   try {
     let accepted;
+    let sourceMetadata;
     if (lane === 'metadata') {
       const sheetId = env.CLIP_LIBRARY_SHEET_ID ?? SHEET_ID;
       if (typeof sheetId !== 'string' || !/^[A-Za-z0-9_-]{20,128}$/.test(sheetId)) throw new Error('invalid-source');
@@ -19,12 +20,15 @@ export async function refreshFeed(repository, lane, env, fetcher = fetch) {
     } else if (lane === 'playback') {
       accepted = await repository.acceptPlayback(attempt.generation, await resolvePlayback(attempt.items, fetcher));
     } else {
-      accepted = await repository.acceptYoutube(attempt.generation, await fetchYoutubeVideos(fetcher, env));
+      const { videos, ...metadata } = await fetchYoutubeVideos(fetcher, env);
+      sourceMetadata = metadata;
+      accepted = await repository.acceptYoutube(attempt.generation, videos, metadata);
     }
-    return { accepted, generation: attempt.generation };
+    return { accepted, generation: attempt.generation, ...sourceMetadata };
   } catch (error) {
     const category = errorCategory(error);
-    await repository.fail(lane, attempt.generation, category);
-    return { accepted: false, generation: attempt.generation, errorCategory: category };
+    const metadata = lane === 'youtube' ? { primaryErrorCategory: error.primaryErrorCategory ?? category } : {};
+    await repository.fail(lane, attempt.generation, category, metadata);
+    return { accepted: false, generation: attempt.generation, errorCategory: category, ...metadata };
   }
 }

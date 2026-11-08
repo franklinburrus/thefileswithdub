@@ -50,6 +50,7 @@ test('real SQLite DO runtime persists independent feeds and atomic content/healt
   const bundled = await build({ stdin: { contents: fixture, resolveDir: process.cwd(), sourcefile: 'test-feed-runtime.ts' }, bundle: true, write: false, format: 'esm', platform: 'neutral', external: ['cloudflare:*', 'node:*'] });
   const persist = await mkdtemp(join(tmpdir(), 'dub-feed-runtime-'));
   let failing = false;
+  let fallbackAvailable = false;
   let calls = 0;
   let xSources = [];
   const csv = rows => rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\r\n');
@@ -60,7 +61,7 @@ test('real SQLite DO runtime persists independent feeds and atomic content/healt
     compatibilityFlags: ['nodejs_compat'],
     durableObjects: { FEED_STORE: { className: 'FeedStore', useSQLite: true } },
     resourcePersistencePath: persist,
-    bindings: { FEED_REFRESH_ENABLED: 'true', YOUTUBE_DATA_API_FALLBACK_ENABLED: 'false' },
+    bindings: { FEED_REFRESH_ENABLED: 'true', YOUTUBE_DATA_API_FALLBACK_ENABLED: 'true', YOUTUBE_DATA_API_KEY: 'runtime-fixture-header-key' },
     outboundService: async request => {
       const url = new URL(request.url);
       if (url.hostname === 'docs.google.com') {
@@ -73,6 +74,22 @@ test('real SQLite DO runtime persists independent feeds and atomic content/healt
         return url.pathname.endsWith('2onbAgvyKWBPYg')
           ? new Response('https://prod.video.pscp.tv/Transcoding/v1/hls/newest/master.m3u8')
           : new Response('rate limited', { status: 429 });
+      }
+      if (url.hostname === 'www.googleapis.com') {
+        assert.equal(url.href.includes('runtime-fixture-header-key'), false);
+        assert.equal(request.headers.get('X-Goog-Api-Key'), 'runtime-fixture-header-key');
+        if (!fallbackAvailable) return new Response('', { status: 403 });
+        if (url.pathname.endsWith('/playlistItems')) return Response.json({ kind: 'youtube#playlistItemListResponse', items: [{
+          kind: 'youtube#playlistItem',
+          snippet: { channelId: channel, playlistId: `UU${channel.slice(2)}`, videoOwnerChannelId: channel, resourceId: { kind: 'youtube#video', videoId: video } },
+          contentDetails: { videoId: video },
+        }] });
+        assert.equal(url.pathname, '/youtube/v3/videos');
+        return Response.json({ kind: 'youtube#videoListResponse', items: [{
+          kind: 'youtube#video', id: video,
+          snippet: { channelId: channel, title: 'Runtime upload', publishedAt: '2026-11-07T12:00:00Z' },
+          status: { privacyStatus: 'public', uploadStatus: 'processed' },
+        }] });
       }
       assert.match(request.url, /^https:\/\/www.youtube.com\/feeds\/videos.xml\?channel_id=/);
       calls += 1;
@@ -106,6 +123,8 @@ test('real SQLite DO runtime persists independent feeds and atomic content/healt
     const accepted = await json('/youtube');
     assert.equal(accepted.videos[0].videoId, video);
     assert.equal(accepted.source, 'youtube');
+    assert.equal(accepted.health.provider, 'rss');
+    assert.equal(accepted.health.primaryErrorCategory, null);
     assert.match(accepted.version, /^[a-f0-9]{64}$/);
     assert.equal((await json('/x')).version, playback.version);
     assert.equal(await (await runtime.dispatchFetch('https://internal/test-interrupt')).text(), 'rolled back');
@@ -118,19 +137,36 @@ test('real SQLite DO runtime persists independent feeds and atomic content/healt
     assert.equal(degraded.version, accepted.version);
     assert.equal(degraded.health.lastSuccessAt, accepted.health.lastSuccessAt);
     assert.equal(degraded.health.consecutiveFailures, 1);
+    assert.equal(degraded.health.provider, 'rss');
+    assert.equal(degraded.health.primaryErrorCategory, 'upstream-503');
     assert.equal(calls, 4);
     await runtime.dispose();
     runtime = new Miniflare(convertV4MiniflareOptions(options));
     const restored = await json('/youtube');
     assert.equal(restored.version, accepted.version);
     assert.equal(restored.source, 'last-known-good');
+    assert.equal(restored.health.provider, 'rss');
     assert.equal((await json('/x')).version, playback.version);
+    fallbackAvailable = true;
+    await cron();
+    const fallback = await json('/youtube');
+    assert.equal(fallback.source, 'youtube');
+    assert.equal(fallback.health.provider, 'youtube-data-api');
+    assert.equal(fallback.health.primaryErrorCategory, 'upstream-503');
+    assert.equal(fallback.health.consecutiveFailures, 0);
+    assert.equal(fallback.version, accepted.version);
+    assert.equal(fallback.publishedAt, accepted.publishedAt);
+    await runtime.dispose();
+    runtime = new Miniflare(convertV4MiniflareOptions(options));
+    assert.equal((await json('/youtube')).health.provider, 'youtube-data-api');
     failing = false;
     await cron();
     const recovered = await json('/youtube');
     assert.equal(recovered.source, 'youtube');
     assert.equal(recovered.health.errorCategory, null);
     assert.equal(recovered.health.consecutiveFailures, 0);
+    assert.equal(recovered.health.provider, 'rss');
+    assert.equal(recovered.health.primaryErrorCategory, null);
     assert.equal(recovered.version, accepted.version);
   } finally {
     await runtime.dispose();

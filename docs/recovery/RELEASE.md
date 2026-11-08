@@ -1,5 +1,17 @@
 # Coordinated release procedure
 
+## Operational gap closure
+
+Use the existing external checkpoint to pin both repository commits, active versions and rollback targets before release. Store the YouTube key only in coordinator secret storage and the repository-restricted dispatch token only in monitor-trigger secret storage. Use separate protected secret files when an initial deployment needs credentials. Never include secret values in shell arguments, logs or Git. Record token expiry and rotation responsibility in the external checkpoint.
+
+Deploy the feed coordinator and monitor trigger to their explicit preview environments first. The trigger has no public routes, KV or Durable Object bindings. Its preview workflow is `trigger-smoke.yml`; production uses `uptime.yml` in the fixed status repository. Preview ingestion and monitor scheduling start paused. Use the same `2026-09-12` compatibility date as the verified project runtime.
+
+Prove live API eligibility and provider reporting in preview. Exercise RSS failure/API recovery, dual-source failure, unchanged-content version stability, restart persistence and RSS recovery. Confirm public clients show the accepted feed and accurate status. Run the complete verification suite and guarded website procedure for any website upload.
+
+After preview acceptance, stage production with explicit disabled scheduling overrides when needed. The committed production flags enable normal feed refresh, YouTube fallback and monitor triggering. Verify the selected environment and actual flags after each deployment. The monitor cron is `2-59/5 * * * *`; allow Cloudflare propagation before observing two consecutive real scheduled ticks, each correlated to its completed GitHub job. HTTP 204 alone records dispatch acceptance. Also observe two successful production YouTube scheduled refreshes.
+
+Verify controlled 404 and HTTP 200 degraded alerts, owner notification readback, recovery closure and repeat-run deduplication. A `degraded` workflow input selects a fixed public test fixture. Retain labeled test incidents as evidence. Native GitHub cron remains best effort and is reported separately from Cloudflare-initiated automatic execution. Keep release status partial while required live checks are pending.
+
 ## Follow-up acceptance
 
 The three explicit 404 retirements are the only approved removals from the 80-entry published source snapshot. Expect 77 active records and unchanged surviving metadata. Verify retired IDs remain absent after repeat ingestion and playback refresh. The additive `/api/feed-health` field `status` is `healthy` only when X metadata, X playback and YouTube are all healthy. The MIT Upptime monitor in `franklinburrus/thefileswithdub-status` requires this marker and HTTP 200, then assigns incident notifications to `franklinburrus`. Its controlled delivery test changes only the monitor's requested URL to a known 404, followed by recovery to the real health endpoint. Preserve the test issue and notification readbacks.

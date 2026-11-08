@@ -62,6 +62,7 @@ function publicLane(lane, snapshot, feed, now, name) {
     state: stale ? 'degraded' : lane.state,
     version: snapshot.version,
     feedAgeMs: age,
+    ...(name === 'youtube' ? { provider: lane.provider ?? null, primaryErrorCategory: lane.primaryErrorCategory ?? null } : {}),
     ...(name === 'playback' ? { resolutions: Object.fromEntries(Object.entries(snapshot.resolutions ?? {}).filter(([id, resolution]) => snapshot.items.some(item => item.id === id && item.sourceUrl === resolution.sourceUrl)).map(([id, resolution]) => [id, { ...resolution, ageMs: resolution.lastSuccessAt === null ? null : Math.max(0, now - resolution.lastSuccessAt) }])) } : {}),
   };
 }
@@ -94,11 +95,12 @@ export class FeedRepository {
     });
   }
 
-  async fail(laneName, generation, category) {
+  async fail(laneName, generation, category, metadata = {}) {
     return this.mutate(snapshot => {
       const lane = snapshot.lanes[laneName];
       if (lane.generation !== generation) return false;
       failure(lane, category);
+      if (laneName === 'youtube' && metadata.primaryErrorCategory !== undefined) lane.primaryErrorCategory = metadata.primaryErrorCategory;
       return true;
     });
   }
@@ -150,13 +152,16 @@ export class FeedRepository {
     });
   }
 
-  async acceptYoutube(generation, videos) {
+  async acceptYoutube(generation, videos, metadata = {}) {
     validateItems(videos, 'youtube');
+    if (metadata.provider !== undefined && !['rss', 'youtube-data-api'].includes(metadata.provider)) throw new Error('invalid-candidate');
     return this.mutate((snapshot, now) => {
       const lane = snapshot.lanes.youtube;
       if (lane.generation !== generation) return false;
       acceptContent(snapshot, videos, now);
       success(lane, now, newest(videos, 'youtube'));
+      lane.provider = metadata.provider ?? null;
+      lane.primaryErrorCategory = metadata.primaryErrorCategory ?? null;
       return true;
     });
   }

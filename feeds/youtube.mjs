@@ -3,6 +3,16 @@ import { errorCategory, readUpstreamText } from './upstream.mjs';
 export const CHANNEL_ID = 'UCPydZggyK7qQRp4VNUGXNgg';
 const RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+const UPLOADS_ID = `UU${CHANNEL_ID.slice(2)}`;
+const MAX_VIDEOS = 15;
+
+function publishedTime(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) throw new Error('invalid-candidate');
+  const time = Date.parse(value);
+  const day = Date.parse(`${value.slice(0, 10)}T00:00:00Z`);
+  if (!Number.isFinite(time) || !Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== value.slice(0, 10)) throw new Error('invalid-candidate');
+  return time;
+}
 
 function decodeXml(value) {
   return value.replace(/&(?:amp|quot|apos|lt|gt|#\d+|#x[\da-f]+);/gi, entity => {
@@ -25,12 +35,13 @@ function videosFromEntries(entries) {
     if (entry.channelId !== CHANNEL_ID) throw new Error('invalid-candidate');
     if (!VIDEO_ID.test(entry.videoId) || ids.has(entry.videoId)) throw new Error('invalid-candidate');
     ids.add(entry.videoId);
+    if (typeof entry.title !== 'string') throw new Error('invalid-candidate');
     const title = entry.title.replace(/\s+/g, ' ').trim();
-    const dateMs = Date.parse(entry.publishedAt);
-    if (!title || title.length > 500 || !/^\d{4}-\d{2}-\d{2}T/.test(entry.publishedAt) || !Number.isFinite(dateMs)) throw new Error('invalid-candidate');
+    const dateMs = publishedTime(entry.publishedAt);
+    if (!title || title.length > 500) throw new Error('invalid-candidate');
     return { title, videoId: entry.videoId, publishedAt: new Date(dateMs).toISOString() };
   }).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt) || a.videoId.localeCompare(b.videoId));
-  return normalized.map((entry, index) => ({
+  return normalized.slice(0, MAX_VIDEOS).map((entry, index) => ({
     id: index + 1,
     title: entry.title,
     runtime: 'New upload',
@@ -68,26 +79,71 @@ export function parseYoutubeFeed(xml) {
   return videosFromEntries(entries.map(entry => ({ videoId: tag(entry, 'yt:videoId'), channelId: tag(entry, 'yt:channelId'), title: tag(entry, 'title'), publishedAt: tag(entry, 'published') })));
 }
 
-async function apiFallback(fetcher, key) {
-  const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
-  url.search = new URLSearchParams({ part: 'snippet,contentDetails', playlistId: `UU${CHANNEL_ID.slice(2)}`, maxResults: '15' }).toString();
+async function apiItems(endpoint, params, fetcher, key, kind) {
+  const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
+  url.search = new URLSearchParams(params).toString();
   const body = JSON.parse(await readUpstreamText(url.toString(), { fetcher, headers: { 'X-Goog-Api-Key': key } }));
-  if (!Array.isArray(body.items)) throw new Error('invalid-candidate');
-  return videosFromEntries(body.items.map(item => ({
-    videoId: item.contentDetails?.videoId,
-    channelId: item.snippet?.videoOwnerChannelId,
-    title: item.snippet?.title ?? '',
-    publishedAt: item.contentDetails?.videoPublishedAt ?? '',
-  })));
+  if (body?.kind !== kind || !Array.isArray(body.items) || body.items.length > 50 || body.error) throw new Error('invalid-candidate');
+  return body.items;
 }
 
-export async function fetchYoutubeVideos(fetcher = fetch, env = {}) {
+async function apiFallback(fetcher, key, now) {
+  const playlist = await apiItems('playlistItems', { part: 'snippet,contentDetails', playlistId: UPLOADS_ID, maxResults: '50' }, fetcher, key, 'youtube#playlistItemListResponse');
+  if (!playlist.length) throw new Error('invalid-candidate');
+  const requested = new Map();
+  for (const item of playlist) {
+    const id = item?.contentDetails?.videoId;
+    const snippet = item?.snippet;
+    if (
+      item?.kind !== 'youtube#playlistItem' || !VIDEO_ID.test(id ?? '') || requested.has(id) ||
+      snippet?.channelId !== CHANNEL_ID || snippet.playlistId !== UPLOADS_ID ||
+      snippet.resourceId?.kind !== 'youtube#video' || snippet.resourceId.videoId !== id ||
+      (snippet.videoOwnerChannelId !== undefined && snippet.videoOwnerChannelId !== CHANNEL_ID)
+    ) throw new Error('invalid-candidate');
+    requested.set(id, snippet);
+  }
+  const videos = await apiItems('videos', { part: 'snippet,status', id: [...requested.keys()].join(',') }, fetcher, key, 'youtube#videoListResponse');
+  const seen = new Set();
+  const eligible = [];
+  for (const item of videos) {
+    const snippet = item?.snippet;
+    const status = item?.status;
+    if (
+      item?.kind !== 'youtube#video' || !requested.has(item.id) || seen.has(item.id) ||
+      snippet?.channelId !== CHANNEL_ID || !status ||
+      !['public', 'private', 'unlisted'].includes(status.privacyStatus) ||
+      !['uploaded', 'processed', 'failed', 'rejected', 'deleted'].includes(status.uploadStatus)
+    ) throw new Error('invalid-candidate');
+    seen.add(item.id);
+    const publishedAt = publishedTime(snippet.publishedAt);
+    const publishAt = status.publishAt === undefined ? null : publishedTime(status.publishAt);
+    if (
+      status.privacyStatus !== 'public' || status.uploadStatus !== 'processed' ||
+      snippet.liveBroadcastContent === 'upcoming' || publishedAt > now ||
+      (publishAt !== null && publishAt > now)
+    ) continue;
+    if (requested.get(item.id).videoOwnerChannelId !== CHANNEL_ID) throw new Error('invalid-candidate');
+    eligible.push({ videoId: item.id, channelId: snippet.channelId, title: snippet.title, publishedAt: snippet.publishedAt });
+  }
+  // Missing videos are unavailable to this public API caller and stay excluded.
+  return videosFromEntries(eligible);
+}
+
+export async function fetchYoutubeVideos(fetcher = fetch, env = {}, now = Date.now) {
   let category = 'network';
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      return parseYoutubeFeed(await readUpstreamText(RSS_URL, { fetcher, headers: { Accept: 'application/atom+xml,application/xml', 'User-Agent': 'The-Files-With-Dub-Updates/2.0' } }));
+      const videos = parseYoutubeFeed(await readUpstreamText(RSS_URL, { fetcher, headers: { Accept: 'application/atom+xml,application/xml', 'User-Agent': 'The-Files-With-Dub-Updates/2.0' } }));
+      return { videos, provider: 'rss', primaryErrorCategory: null };
     } catch (error) { category = errorCategory(error); }
   }
-  if (env.YOUTUBE_DATA_API_FALLBACK_ENABLED === 'true' && env.YOUTUBE_DATA_API_KEY) return apiFallback(fetcher, env.YOUTUBE_DATA_API_KEY);
-  throw new Error(category);
+  if (env.YOUTUBE_DATA_API_FALLBACK_ENABLED === 'true' && env.YOUTUBE_DATA_API_KEY) {
+    try {
+      const videos = await apiFallback(fetcher, env.YOUTUBE_DATA_API_KEY, now());
+      return { videos, provider: 'youtube-data-api', primaryErrorCategory: category };
+    } catch (error) {
+      throw Object.assign(new Error(errorCategory(error)), { primaryErrorCategory: category });
+    }
+  }
+  throw Object.assign(new Error(category), { primaryErrorCategory: category });
 }

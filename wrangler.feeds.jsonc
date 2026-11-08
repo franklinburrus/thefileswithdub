@@ -25,7 +25,7 @@
       "vars": {
         "CLIP_LIBRARY_SHEET_ID": "1qaQs7nVjtTaolAxaNMJF708qKW-k_79jA-d370zZwtk",
         "FEED_REFRESH_ENABLED": "false",
-        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
+        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "true"
       },
       "durable_objects": {
         "bindings": [{ "name": "FEED_STORE", "class_name": "FeedStore" }]
@@ -38,8 +38,8 @@
       "preview_urls": false,
       "routes": [],
       "vars": {
-        "FEED_REFRESH_ENABLED": "false",
-        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "false"
+        "FEED_REFRESH_ENABLED": "true",
+        "YOUTUBE_DATA_API_FALLBACK_ENABLED": "true"
       },
       "durable_objects": {
         "bindings": [{ "name": "FEED_STORE", "class_name": "FeedStore" }]
